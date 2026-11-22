@@ -1,0 +1,19 @@
+file                         bytes        gzip      brotli  budget
+robot-viewer.js              15645        5066        4422  ok   10.0 KB gzipped
+robot-viewer-engine.js      673124      172784      142333  ok   200.0 KB gzipped
+robot-viewer.css              9565        2656        2271  ok   6.0 KB gzipped
+index.html                    3687        1213         933  
+demo.css                      4749        1661        1400  
+demo.js                       1063         523         411  
+robots.json                   1185         423         370  
+wren.glb                    121748       50708       43625  ok   4.00 MB
+wren.joints.json              4778         851         732  
+wren.poster.webp             25092       23810       23798  ok   250.0 KB
+wren.poster.png             123150      117491      116766  ok   1.17 MB
+so100.glb                  1044764      691002      588484  ok   4.00 MB
+so100.joints.json             3841         737         647  
+so100.poster.webp            60534       59035       58705  ok   250.0 KB
+so100.poster.png            257368      251673      250408  ok   1.17 MB
+
+first load (loader only, gzipped): 4.9 KB
+viewer code when shown (gzipped): 173.7 KB

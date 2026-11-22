@@ -1,0 +1,56 @@
+{
+  "robots": [
+    {
+      "name": "wren",
+      "robot": "wren",
+      "title": "Wren",
+      "alt": "Wren, a small made-up desk arm with a two-finger gripper",
+      "glb": "wren.glb",
+      "joints": "wren.joints.json",
+      "poster": "wren.poster.webp",
+      "ik": true,
+      "ar": {},
+      "leaf": "hand",
+      "orbit": null,
+      "poses": [
+        "home",
+        "reach",
+        "wave",
+        "inspect"
+      ],
+      "defaultPose": "home",
+      "stats": {
+        "links": 9,
+        "joints": 8,
+        "moving": 6,
+        "triangles": 6860
+      }
+    },
+    {
+      "name": "so100",
+      "robot": "so_arm100",
+      "title": "SO-ARM100",
+      "alt": "SO-ARM100, an open-source 3D-printed robot arm designed by The Robot Studio",
+      "glb": "so100.glb",
+      "joints": "so100.joints.json",
+      "poster": "so100.poster.webp",
+      "ik": true,
+      "ar": {},
+      "leaf": "gripper",
+      "orbit": "-60 18",
+      "poses": [
+        "rest",
+        "ready",
+        "reach",
+        "up"
+      ],
+      "defaultPose": "ready",
+      "stats": {
+        "links": 7,
+        "joints": 6,
+        "moving": 6,
+        "triangles": 60682
+      }
+    }
+  ]
+}

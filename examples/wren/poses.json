@@ -1,0 +1,10 @@
+{
+  "units": "deg",
+  "default": "home",
+  "poses": {
+    "home": { "shoulder": -12, "elbow": 118, "wrist_pitch": 70 },
+    "reach": { "base_yaw": 35, "shoulder": 58, "elbow": 48, "wrist_pitch": 30, "gripper": 0.022 },
+    "wave": { "base_yaw": -25, "shoulder": -8, "elbow": -38, "wrist_pitch": -28, "wrist_roll": 90, "gripper": 0.012 },
+    "inspect": { "base_yaw": 70, "shoulder": 22, "elbow": 92, "wrist_pitch": -20, "wrist_roll": -45 }
+  }
+}

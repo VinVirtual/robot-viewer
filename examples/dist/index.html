@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; form-action 'none'">
+  <title>Wren and SO-ARM100 | robot-viewer</title>
+  <link rel="stylesheet" href="demo.css">
+  <script type="module" src="robot-viewer.js"></script>
+  <script type="module" src="demo.js"></script>
+</head>
+<body>
+  <header class="masthead">
+    <p class="kicker">robot-viewer <span>demo</span></p>
+    <h1>Wren and SO-ARM100</h1>
+    <p class="lede">Each robot below is one compressed GLB file and one web component, served from this folder with no other site involved. The page runs under <code>default-src &#39;self&#39;; base-uri &#39;none&#39;; object-src &#39;none&#39;; form-action &#39;none&#39;</code>.</p>
+    <button type="button" class="theme" aria-pressed="false">Dark</button>
+  </header>
+  <main>
+    <section class="robot" aria-labelledby="robot-wren">
+      <header class="robot-head">
+        <p class="index">01</p>
+        <h2 id="robot-wren">Wren</h2>
+        <dl class="facts">
+          <div><dt>Moving joints</dt><dd>6</dd></div>
+          <div><dt>Links</dt><dd>9</dd></div>
+          <div><dt>Triangles</dt><dd>6,860</dd></div>
+          <div><dt>Model file</dt><dd>119 KB</dd></div>
+        </dl>
+        <p class="how">Pick a pose, or set each joint with its slider. Drag a part of the robot to move it. Drag the background to turn the view.</p>
+      </header>
+      <robot-viewer src="wren.glb" poster="wren.poster.webp" alt="Wren, a small made-up desk arm with a two-finger gripper" pose="home" ik></robot-viewer>
+      <details class="embed">
+        <summary>Embed this robot</summary>
+        <pre><code>&lt;!-- Wren: load the component once per page --&gt;
+&lt;script type=&quot;module&quot; src=&quot;robot-viewer.js&quot;&gt;&lt;/script&gt;
+&lt;robot-viewer src=&quot;wren.glb&quot; poster=&quot;wren.poster.webp&quot; alt=&quot;Wren, a small made-up desk arm with a two-finger gripper&quot; pose=&quot;home&quot; ik&gt;&lt;/robot-viewer&gt;</code></pre>
+      </details>
+    </section>
+
+    <section class="robot" aria-labelledby="robot-so100">
+      <header class="robot-head">
+        <p class="index">02</p>
+        <h2 id="robot-so100">SO-ARM100</h2>
+        <dl class="facts">
+          <div><dt>Moving joints</dt><dd>6</dd></div>
+          <div><dt>Links</dt><dd>7</dd></div>
+          <div><dt>Triangles</dt><dd>60,682</dd></div>
+          <div><dt>Model file</dt><dd>1020 KB</dd></div>
+        </dl>
+        <p class="how">Pick a pose, or set each joint with its slider. Drag a part of the robot to move it. Drag the background to turn the view.</p>
+      </header>
+      <robot-viewer src="so100.glb" poster="so100.poster.webp" alt="SO-ARM100, an open-source 3D-printed robot arm designed by The Robot Studio" pose="ready" orbit="-60 18" ik></robot-viewer>
+      <details class="embed">
+        <summary>Embed this robot</summary>
+        <pre><code>&lt;!-- SO-ARM100: load the component once per page --&gt;
+&lt;script type=&quot;module&quot; src=&quot;robot-viewer.js&quot;&gt;&lt;/script&gt;
+&lt;robot-viewer src=&quot;so100.glb&quot; poster=&quot;so100.poster.webp&quot; alt=&quot;SO-ARM100, an open-source 3D-printed robot arm designed by The Robot Studio&quot; pose=&quot;ready&quot; orbit=&quot;-60 18&quot; ik&gt;&lt;/robot-viewer&gt;</code></pre>
+      </details>
+    </section>
+  </main>
+  <footer class="colophon">
+    <p>Joint limits come from each robot's URDF. Motion is illustrative: no collisions, torque or speed are checked.</p>
+  </footer>
+</body>
+</html>

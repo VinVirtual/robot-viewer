@@ -1,0 +1,294 @@
+{
+  "format": "robot-viewer/1",
+  "robot": "wren",
+  "glb": "wren.glb",
+  "up": "z",
+  "units": {
+    "angle": "rad",
+    "length": "m"
+  },
+  "root": "base",
+  "links": [
+    "base",
+    "turret",
+    "upper_arm",
+    "forearm",
+    "wrist",
+    "hand",
+    "finger_left",
+    "finger_right",
+    "tool"
+  ],
+  "joints": [
+    {
+      "name": "base_yaw",
+      "type": "revolute",
+      "parent": "base",
+      "child": "turret",
+      "origin": {
+        "xyz": [
+          0,
+          0,
+          0.042
+        ],
+        "rpy": [
+          0,
+          0,
+          0
+        ]
+      },
+      "axis": [
+        0,
+        0,
+        1
+      ],
+      "limit": {
+        "lower": -2.967,
+        "upper": 2.967,
+        "velocity": 2,
+        "effort": 6
+      },
+      "mimic": null
+    },
+    {
+      "name": "shoulder",
+      "type": "revolute",
+      "parent": "turret",
+      "child": "upper_arm",
+      "origin": {
+        "xyz": [
+          0,
+          0,
+          0.05
+        ],
+        "rpy": [
+          0,
+          0,
+          0
+        ]
+      },
+      "axis": [
+        0,
+        1,
+        0
+      ],
+      "limit": {
+        "lower": -1.745,
+        "upper": 1.745,
+        "velocity": 1.6,
+        "effort": 6
+      },
+      "mimic": null
+    },
+    {
+      "name": "elbow",
+      "type": "revolute",
+      "parent": "upper_arm",
+      "child": "forearm",
+      "origin": {
+        "xyz": [
+          0,
+          0,
+          0.22
+        ],
+        "rpy": [
+          0,
+          0,
+          0
+        ]
+      },
+      "axis": [
+        0,
+        1,
+        0
+      ],
+      "limit": {
+        "lower": -2.53,
+        "upper": 2.53,
+        "velocity": 2,
+        "effort": 4
+      },
+      "mimic": null
+    },
+    {
+      "name": "wrist_pitch",
+      "type": "revolute",
+      "parent": "forearm",
+      "child": "wrist",
+      "origin": {
+        "xyz": [
+          0,
+          0,
+          0.18
+        ],
+        "rpy": [
+          0,
+          0,
+          0
+        ]
+      },
+      "axis": [
+        0,
+        1,
+        0
+      ],
+      "limit": {
+        "lower": -2,
+        "upper": 2,
+        "velocity": 3,
+        "effort": 2
+      },
+      "mimic": null
+    },
+    {
+      "name": "wrist_roll",
+      "type": "continuous",
+      "parent": "wrist",
+      "child": "hand",
+      "origin": {
+        "xyz": [
+          0,
+          0,
+          0.042
+        ],
+        "rpy": [
+          0,
+          0,
+          0
+        ]
+      },
+      "axis": [
+        0,
+        0,
+        1
+      ],
+      "limit": {
+        "lower": null,
+        "upper": null,
+        "velocity": 4,
+        "effort": 1
+      },
+      "mimic": null
+    },
+    {
+      "name": "gripper",
+      "type": "prismatic",
+      "parent": "hand",
+      "child": "finger_left",
+      "origin": {
+        "xyz": [
+          0,
+          0.004,
+          0.024
+        ],
+        "rpy": [
+          0,
+          0,
+          0
+        ]
+      },
+      "axis": [
+        0,
+        1,
+        0
+      ],
+      "limit": {
+        "lower": 0,
+        "upper": 0.026,
+        "velocity": 0.05,
+        "effort": 20
+      },
+      "mimic": null
+    },
+    {
+      "name": "gripper_mirror",
+      "type": "prismatic",
+      "parent": "hand",
+      "child": "finger_right",
+      "origin": {
+        "xyz": [
+          0,
+          -0.004,
+          0.024
+        ],
+        "rpy": [
+          0,
+          0,
+          0
+        ]
+      },
+      "axis": [
+        0,
+        -1,
+        0
+      ],
+      "limit": {
+        "lower": 0,
+        "upper": 0.026,
+        "velocity": 0.05,
+        "effort": 20
+      },
+      "mimic": {
+        "joint": "gripper",
+        "multiplier": 1,
+        "offset": 0
+      }
+    },
+    {
+      "name": "tool_frame",
+      "type": "fixed",
+      "parent": "hand",
+      "child": "tool",
+      "origin": {
+        "xyz": [
+          0,
+          0,
+          0.09
+        ],
+        "rpy": [
+          0,
+          0,
+          0
+        ]
+      },
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "limit": null,
+      "mimic": null
+    }
+  ],
+  "poses": {
+    "home": {
+      "shoulder": -0.20944,
+      "elbow": 2.059489,
+      "wrist_pitch": 1.22173
+    },
+    "reach": {
+      "base_yaw": 0.610865,
+      "shoulder": 1.012291,
+      "elbow": 0.837758,
+      "wrist_pitch": 0.523599,
+      "gripper": 0.022
+    },
+    "wave": {
+      "base_yaw": -0.436332,
+      "shoulder": -0.139626,
+      "elbow": -0.663225,
+      "wrist_pitch": -0.488692,
+      "wrist_roll": 1.570796,
+      "gripper": 0.012
+    },
+    "inspect": {
+      "base_yaw": 1.22173,
+      "shoulder": 0.383972,
+      "elbow": 1.605703,
+      "wrist_pitch": -0.349066,
+      "wrist_roll": -0.785398
+    }
+  },
+  "defaultPose": "home",
+  "bounds": null
+}

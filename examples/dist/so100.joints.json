@@ -1,0 +1,230 @@
+{
+  "format": "robot-viewer/1",
+  "robot": "so_arm100",
+  "glb": "so100.glb",
+  "up": "z",
+  "units": {
+    "angle": "rad",
+    "length": "m"
+  },
+  "root": "base",
+  "links": [
+    "base",
+    "shoulder",
+    "upper_arm",
+    "lower_arm",
+    "wrist",
+    "gripper",
+    "jaw"
+  ],
+  "joints": [
+    {
+      "name": "shoulder_pan",
+      "type": "revolute",
+      "parent": "base",
+      "child": "shoulder",
+      "origin": {
+        "xyz": [
+          0,
+          -0.0452,
+          0.0165
+        ],
+        "rpy": [
+          1.57079,
+          0,
+          0
+        ]
+      },
+      "axis": [
+        0,
+        1,
+        0
+      ],
+      "limit": {
+        "lower": -2,
+        "upper": 2,
+        "velocity": 1,
+        "effort": 35
+      },
+      "mimic": null
+    },
+    {
+      "name": "shoulder_lift",
+      "type": "revolute",
+      "parent": "shoulder",
+      "child": "upper_arm",
+      "origin": {
+        "xyz": [
+          0,
+          0.1025,
+          0.0306
+        ],
+        "rpy": [
+          -1.8,
+          0,
+          0
+        ]
+      },
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "limit": {
+        "lower": 0,
+        "upper": 3.5,
+        "velocity": 1,
+        "effort": 35
+      },
+      "mimic": null
+    },
+    {
+      "name": "elbow_flex",
+      "type": "revolute",
+      "parent": "upper_arm",
+      "child": "lower_arm",
+      "origin": {
+        "xyz": [
+          0,
+          0.11257,
+          0.028
+        ],
+        "rpy": [
+          1.57079,
+          0,
+          0
+        ]
+      },
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "limit": {
+        "lower": -3.14158,
+        "upper": 0,
+        "velocity": 1,
+        "effort": 35
+      },
+      "mimic": null
+    },
+    {
+      "name": "wrist_flex",
+      "type": "revolute",
+      "parent": "lower_arm",
+      "child": "wrist",
+      "origin": {
+        "xyz": [
+          0,
+          0.0052,
+          0.1349
+        ],
+        "rpy": [
+          -1,
+          0,
+          0
+        ]
+      },
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "limit": {
+        "lower": -2.5,
+        "upper": 1.2,
+        "velocity": 1,
+        "effort": 35
+      },
+      "mimic": null
+    },
+    {
+      "name": "wrist_roll",
+      "type": "revolute",
+      "parent": "wrist",
+      "child": "gripper",
+      "origin": {
+        "xyz": [
+          0,
+          -0.0601,
+          0
+        ],
+        "rpy": [
+          0,
+          1.57079,
+          0
+        ]
+      },
+      "axis": [
+        0,
+        1,
+        0
+      ],
+      "limit": {
+        "lower": -3.14158,
+        "upper": 3.14158,
+        "velocity": 1,
+        "effort": 35
+      },
+      "mimic": null
+    },
+    {
+      "name": "gripper",
+      "type": "revolute",
+      "parent": "gripper",
+      "child": "jaw",
+      "origin": {
+        "xyz": [
+          -0.0202,
+          -0.0244,
+          0
+        ],
+        "rpy": [
+          0,
+          3.14158,
+          0
+        ]
+      },
+      "axis": [
+        0,
+        0,
+        1
+      ],
+      "limit": {
+        "lower": -0.2,
+        "upper": 2,
+        "velocity": 1,
+        "effort": 35
+      },
+      "mimic": null
+    }
+  ],
+  "poses": {
+    "rest": {
+      "shoulder_lift": 3.403392,
+      "elbow_flex": -0.261799,
+      "wrist_flex": -0.698132
+    },
+    "ready": {
+      "shoulder_lift": 1.745329,
+      "elbow_flex": -1.570796,
+      "wrist_flex": 0.959931,
+      "gripper": 0.174533
+    },
+    "reach": {
+      "shoulder_pan": 0.523599,
+      "shoulder_lift": 2.443461,
+      "elbow_flex": -2.094395,
+      "wrist_flex": 0.349066,
+      "gripper": 1.047198
+    },
+    "up": {
+      "shoulder_lift": 1.745329,
+      "elbow_flex": -2.96706,
+      "wrist_roll": 1.570796,
+      "gripper": 0.610865
+    }
+  },
+  "defaultPose": "ready",
+  "bounds": null
+}

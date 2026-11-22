@@ -1,0 +1,154 @@
+{
+  "files": [
+    {
+      "file": "robot-viewer.js",
+      "bytes": 15645,
+      "gzip": 5066,
+      "brotli": 4422,
+      "budget": {
+        "kind": "gzip",
+        "bytes": 10240
+      },
+      "over": false
+    },
+    {
+      "file": "robot-viewer-engine.js",
+      "bytes": 673124,
+      "gzip": 172784,
+      "brotli": 142333,
+      "budget": {
+        "kind": "gzip",
+        "bytes": 204800
+      },
+      "over": false
+    },
+    {
+      "file": "robot-viewer.css",
+      "bytes": 9565,
+      "gzip": 2656,
+      "brotli": 2271,
+      "budget": {
+        "kind": "gzip",
+        "bytes": 6144
+      },
+      "over": false
+    },
+    {
+      "file": "index.html",
+      "bytes": 3687,
+      "gzip": 1213,
+      "brotli": 933,
+      "budget": null,
+      "over": false
+    },
+    {
+      "file": "demo.css",
+      "bytes": 4749,
+      "gzip": 1661,
+      "brotli": 1400,
+      "budget": null,
+      "over": false
+    },
+    {
+      "file": "demo.js",
+      "bytes": 1063,
+      "gzip": 523,
+      "brotli": 411,
+      "budget": null,
+      "over": false
+    },
+    {
+      "file": "robots.json",
+      "bytes": 1185,
+      "gzip": 423,
+      "brotli": 370,
+      "budget": null,
+      "over": false
+    },
+    {
+      "file": "wren.glb",
+      "bytes": 121748,
+      "gzip": 50708,
+      "brotli": 43625,
+      "budget": {
+        "kind": "bytes",
+        "bytes": 4194304
+      },
+      "over": false
+    },
+    {
+      "file": "wren.joints.json",
+      "bytes": 4778,
+      "gzip": 851,
+      "brotli": 732,
+      "budget": null,
+      "over": false
+    },
+    {
+      "file": "wren.poster.webp",
+      "bytes": 25092,
+      "gzip": 23810,
+      "brotli": 23798,
+      "budget": {
+        "kind": "bytes",
+        "bytes": 256000
+      },
+      "over": false
+    },
+    {
+      "file": "wren.poster.png",
+      "bytes": 123150,
+      "gzip": 117491,
+      "brotli": 116766,
+      "budget": {
+        "kind": "bytes",
+        "bytes": 1228800
+      },
+      "over": false
+    },
+    {
+      "file": "so100.glb",
+      "bytes": 1044764,
+      "gzip": 691002,
+      "brotli": 588484,
+      "budget": {
+        "kind": "bytes",
+        "bytes": 4194304
+      },
+      "over": false
+    },
+    {
+      "file": "so100.joints.json",
+      "bytes": 3841,
+      "gzip": 737,
+      "brotli": 647,
+      "budget": null,
+      "over": false
+    },
+    {
+      "file": "so100.poster.webp",
+      "bytes": 60534,
+      "gzip": 59035,
+      "brotli": 58705,
+      "budget": {
+        "kind": "bytes",
+        "bytes": 256000
+      },
+      "over": false
+    },
+    {
+      "file": "so100.poster.png",
+      "bytes": 257368,
+      "gzip": 251673,
+      "brotli": 250408,
+      "budget": {
+        "kind": "bytes",
+        "bytes": 1228800
+      },
+      "over": false
+    }
+  ],
+  "firstLoadGzip": 5066,
+  "viewerGzip": 177850,
+  "over": []
+}

@@ -1,0 +1,10 @@
+{
+  "units": "deg",
+  "default": "ready",
+  "poses": {
+    "rest": { "shoulder_lift": 195, "elbow_flex": -15, "wrist_flex": -40 },
+    "ready": { "shoulder_lift": 100, "elbow_flex": -90, "wrist_flex": 55, "gripper": 10 },
+    "reach": { "shoulder_pan": 30, "shoulder_lift": 140, "elbow_flex": -120, "wrist_flex": 20, "gripper": 60 },
+    "up": { "shoulder_lift": 100, "elbow_flex": -170, "wrist_roll": 90, "gripper": 35 }
+  }
+}

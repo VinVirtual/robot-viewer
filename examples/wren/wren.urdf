@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<!-- Wren: a small made-up desk arm, written for robot-viewer's example. Not a real product. MIT licence. -->
+<robot name="wren">
+  <material name="chalk"><color rgba="0.86 0.85 0.82 1"/></material>
+  <material name="graphite"><color rgba="0.16 0.17 0.19 1"/></material>
+  <material name="signal"><color rgba="0.96 0.40 0.10 1"/></material>
+
+  <link name="base">
+    <visual><geometry><mesh filename="meshes/base.dae"/></geometry></visual>
+  </link>
+
+  <link name="turret">
+    <visual><geometry><mesh filename="meshes/shoulder.obj"/></geometry><material name="chalk"/></visual>
+    <visual><origin xyz="0 0 0.002" rpy="0 0 0"/><geometry><cylinder radius="0.05" length="0.004"/></geometry><material name="signal"/></visual>
+  </link>
+
+  <link name="upper_arm">
+    <visual><geometry><mesh filename="meshes/upper_arm.stl"/></geometry><material name="chalk"/></visual>
+    <visual><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.022" length="0.084"/></geometry><material name="graphite"/></visual>
+    <visual><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.0235" length="0.012"/></geometry><material name="signal"/></visual>
+  </link>
+
+  <link name="forearm">
+    <visual><geometry><mesh filename="meshes/forearm.stl"/></geometry><material name="chalk"/></visual>
+    <visual><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.019" length="0.072"/></geometry><material name="graphite"/></visual>
+  </link>
+
+  <link name="wrist">
+    <visual><origin xyz="0 0 0" rpy="1.5708 0 0"/><geometry><cylinder radius="0.016" length="0.058"/></geometry><material name="graphite"/></visual>
+    <visual><origin xyz="0 0 0.022" rpy="0 0 0"/><geometry><cylinder radius="0.017" length="0.04"/></geometry><material name="chalk"/></visual>
+  </link>
+
+  <link name="hand">
+    <visual><origin xyz="0 0 0.012" rpy="0 0 0"/><geometry><box size="0.034 0.078 0.024"/></geometry><material name="graphite"/></visual>
+    <visual><origin xyz="0 0 0.001" rpy="0 0 0"/><geometry><cylinder radius="0.019" length="0.003"/></geometry><material name="signal"/></visual>
+  </link>
+
+  <link name="finger_left">
+    <visual><origin xyz="0 0.004 0.021" rpy="0 0 0"/><geometry><box size="0.022 0.008 0.042"/></geometry><material name="chalk"/></visual>
+  </link>
+  <link name="finger_right">
+    <visual><origin xyz="0 -0.004 0.021" rpy="0 0 0"/><geometry><box size="0.022 0.008 0.042"/></geometry><material name="chalk"/></visual>
+  </link>
+  <link name="tool"/>
+
+  <joint name="base_yaw" type="revolute">
+    <parent link="base"/><child link="turret"/>
+    <origin xyz="0 0 0.042" rpy="0 0 0"/><axis xyz="0 0 1"/>
+    <limit lower="-2.967" upper="2.967" effort="6" velocity="2.0"/>
+  </joint>
+  <joint name="shoulder" type="revolute">
+    <parent link="turret"/><child link="upper_arm"/>
+    <origin xyz="0 0 0.05" rpy="0 0 0"/><axis xyz="0 1 0"/>
+    <limit lower="-1.745" upper="1.745" effort="6" velocity="1.6"/>
+  </joint>
+  <joint name="elbow" type="revolute">
+    <parent link="upper_arm"/><child link="forearm"/>
+    <origin xyz="0 0 0.22" rpy="0 0 0"/><axis xyz="0 1 0"/>
+    <limit lower="-2.53" upper="2.53" effort="4" velocity="2.0"/>
+  </joint>
+  <joint name="wrist_pitch" type="revolute">
+    <parent link="forearm"/><child link="wrist"/>
+    <origin xyz="0 0 0.18" rpy="0 0 0"/><axis xyz="0 1 0"/>
+    <limit lower="-2.0" upper="2.0" effort="2" velocity="3.0"/>
+  </joint>
+  <joint name="wrist_roll" type="continuous">
+    <parent link="wrist"/><child link="hand"/>
+    <origin xyz="0 0 0.042" rpy="0 0 0"/><axis xyz="0 0 1"/>
+    <limit effort="1" velocity="4.0"/>
+  </joint>
+  <joint name="gripper" type="prismatic">
+    <parent link="hand"/><child link="finger_left"/>
+    <origin xyz="0 0.004 0.024" rpy="0 0 0"/><axis xyz="0 1 0"/>
+    <limit lower="0" upper="0.026" effort="20" velocity="0.05"/>
+  </joint>
+  <joint name="gripper_mirror" type="prismatic">
+    <parent link="hand"/><child link="finger_right"/>
+    <origin xyz="0 -0.004 0.024" rpy="0 0 0"/><axis xyz="0 -1 0"/>
+    <limit lower="0" upper="0.026" effort="20" velocity="0.05"/>
+    <mimic joint="gripper" multiplier="1" offset="0"/>
+  </joint>
+  <joint name="tool_frame" type="fixed">
+    <parent link="hand"/><child link="tool"/>
+    <origin xyz="0 0 0.09" rpy="0 0 0"/>
+  </joint>
+</robot>
