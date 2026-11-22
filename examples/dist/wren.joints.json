@@ -290,5 +290,7 @@
     }
   },
   "defaultPose": "home",
-  "bounds": null
+  "bounds": null,
+  "license": "MIT",
+  "source": "robot-viewer example (made up)"
 }

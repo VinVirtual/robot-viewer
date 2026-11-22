@@ -107,7 +107,7 @@ export function buildDocument(robot, { urdfPath, packageDir } = {}) {
   const childJoints = new Map()
   for (const j of robot.joints) childJoints.set(j.parent, [...(childJoints.get(j.parent) || []), j])
 
-  const buildLink = (name) => {
+  const linkNode = (name) => {
     const link = linkByName.get(name)
     const node = doc.createNode(name).setExtras({ rv: 'link', name })
     link.visuals.forEach((v, i) => {
@@ -118,17 +118,25 @@ export function buildDocument(robot, { urdfPath, packageDir } = {}) {
       if (v.geometry.type === 'mesh') vn.setScale([...v.geometry.scale])
       node.addChild(vn)
     })
-    for (const j of childJoints.get(name) || []) {
-      const t = originTRS(j.origin)
-      const jn = doc.createNode(`joint_${j.name}`).setTranslation(t.translation).setRotation(t.rotation).setExtras({ rv: 'joint', name: j.name })
-      jn.addChild(buildLink(j.child))
-      node.addChild(jn)
-    }
     return node
   }
 
   const root = doc.createNode(`${robot.name}_root`).setRotation(Z_UP_TO_Y_UP).setExtras({ rv: 'robot' })
-  root.addChild(buildLink(robot.root))
+  // depth-first without recursion: [parent node, link name]
+  const stack = [[root, robot.root]]
+  while (stack.length) {
+    const [parent, name] = stack.pop()
+    const node = linkNode(name)
+    parent.addChild(node)
+    const below = []
+    for (const j of childJoints.get(name) || []) {
+      const t = originTRS(j.origin)
+      const jn = doc.createNode(`joint_${j.name}`).setTranslation(t.translation).setRotation(t.rotation).setExtras({ rv: 'joint', name: j.name })
+      node.addChild(jn)
+      below.push([jn, j.child])
+    }
+    stack.push(...below.reverse())
+  }
   scene.addChild(root)
   doc.getRoot().setDefaultScene(scene)
   return { doc, root, warnings: [...new Set(warnings)], stats: { triangles: Math.round(triangles), missingVisuals: missing, materials: materials.size } }

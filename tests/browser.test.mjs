@@ -27,6 +27,10 @@ before(async () => {
 <robot-viewer id="far" src="/${r.glb}" ik></robot-viewer></body></html>`
   server = await serve(dist, { pages: { '/tall.html': tall } })
 })
+// on CI the browser tests must run: a skip there would hide a broken component
+before(() => {
+  if (skip && process.env.CI) throw new Error(`browser tests cannot run on CI: ${skip}`)
+})
 after(async () => {
   await browser?.close()
   await server?.close()
@@ -148,5 +152,93 @@ test('dragging the hand moves the arm (inverse kinematics) and stays inside the 
   const moved = ['base_yaw', 'shoulder', 'elbow', 'wrist_pitch'].some((k) => Math.abs(v[k] - before[k]) > 0.01)
   assert.ok(moved, JSON.stringify({ before, v }))
   assert.ok(Math.abs(v.shoulder) <= 1.745 + 1e-9 && Math.abs(v.elbow) <= 2.53 + 1e-9)
+  await page.close()
+})
+
+test('removing viewers frees their WebGL contexts; 20 in a row cause no context warnings', async (t) => {
+  if (skip) return t.skip(skip)
+  const { page, found } = await open('index.html')
+  const warnings = []
+  page.on('console', (m) => { if (/WebGL|context/i.test(m.text())) warnings.push(m.text()) })
+  await waitForViewers(page)
+  const result = await page.evaluate(async () => {
+    const src = document.querySelector('robot-viewer').getAttribute('src')
+    for (let i = 0; i < 20; i++) {
+      const v = document.createElement('robot-viewer')
+      v.setAttribute('src', src)
+      v.setAttribute('loading', 'eager')
+      document.body.append(v)
+      await new Promise((ok) => v.addEventListener('load', ok, { once: true }))
+      v.remove()
+    }
+    const extra = [...document.querySelectorAll('robot-viewer')].slice(1)
+    return { left: extra.length, canvases: [...document.querySelectorAll('robot-viewer')].reduce((n, v) => n + v.shadowRoot.querySelectorAll('canvas').length, 0) }
+  })
+  assert.equal(result.left, 0)
+  assert.equal(result.canvases, 1)
+  assert.deepEqual(warnings.filter((w) => /too many|oldest context|context lost/i.test(w) && !/forceContextLoss/i.test(w)), [])
+  assert.deepEqual(found.errors, [])
+  await page.close()
+})
+
+test('a viewer removed and put back starts again and loads', async (t) => {
+  if (skip) return t.skip(skip)
+  const { page } = await open('index.html')
+  await waitForViewers(page)
+  const state = await page.evaluate(async () => {
+    const v = document.querySelector('robot-viewer')
+    const parent = v.parentNode, next = v.nextSibling
+    v.remove()
+    const afterRemove = { state: v._state, canvas: !!v.shadowRoot.querySelector('canvas'), panel: v.shadowRoot.querySelector('.panel').hidden }
+    parent.insertBefore(v, next)
+    v.scrollIntoView()
+    await new Promise((ok) => v.addEventListener('load', ok, { once: true }))
+    return { afterRemove, again: v._state, canvases: v.shadowRoot.querySelectorAll('canvas').length }
+  })
+  assert.deepEqual(state.afterRemove, { state: 'idle', canvas: false, panel: true })
+  assert.equal(state.again, 'ready')
+  assert.equal(state.canvases, 1)
+  await page.close()
+})
+
+test('changing controls or src after loading rebuilds the view', async (t) => {
+  if (skip) return t.skip(skip)
+  const { page } = await open('index.html')
+  await waitForViewers(page)
+  const n = await page.evaluate(async () => {
+    const v = document.querySelector('robot-viewer')
+    const loaded = new Promise((ok) => v.addEventListener('load', ok, { once: true }))
+    v.setAttribute('controls', 'poses')
+    await loaded
+    return { sliders: v.shadowRoot.querySelectorAll('input[type="range"]').length, poses: v.shadowRoot.querySelectorAll('button.pose').length, canvases: v.shadowRoot.querySelectorAll('canvas').length }
+  })
+  assert.deepEqual(n, { sliders: 0, poses: 4, canvases: 1 })
+  await page.close()
+})
+
+test('the 3D view lets phones scroll the page vertically, and is labelled for screen readers', async (t) => {
+  if (skip) return t.skip(skip)
+  const { page } = await open('index.html')
+  await waitForViewers(page)
+  const c = await page.evaluate(() => {
+    const canvas = document.querySelector('robot-viewer').shadowRoot.querySelector('canvas')
+    return { touch: getComputedStyle(canvas).touchAction, role: canvas.getAttribute('role'), label: canvas.getAttribute('aria-label'), tab: canvas.tabIndex }
+  })
+  assert.equal(c.touch, 'pan-y')
+  assert.equal(c.role, 'application')
+  assert.match(c.label, /arrow keys turn it/)
+  assert.equal(c.tab, 0)
+  await page.close()
+})
+
+test('Shift + arrow on a slider moves ten steps', async (t) => {
+  if (skip) return t.skip(skip)
+  const { page } = await open('index.html')
+  await waitForViewers(page)
+  const slider = page.locator('robot-viewer').locator('input[type="range"]').first()
+  await slider.focus()
+  await page.keyboard.press('Shift+ArrowRight')
+  const v = await page.evaluate(() => document.querySelector('robot-viewer').values.base_yaw)
+  assert.ok(Math.abs(v - (5 * Math.PI) / 180) < 1e-9, String(v))
   await page.close()
 })

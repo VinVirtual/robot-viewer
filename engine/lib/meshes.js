@@ -56,8 +56,11 @@ function meshesOf(root, warnings, where) {
 }
 
 /** Remove image references so the COLLADA loader does not try to fetch textures. */
-function stripImages(text) {
-  return text.replace(/<library_images>[\s\S]*?<\/library_images>/g, '<library_images/>')
+export function stripImages(text) {
+  // with or without attributes, with or without a namespace prefix, empty or not
+  return text
+    .replace(/<((?:[\w.-]+:)?library_images)\b[^>]*?\/>/g, '')
+    .replace(/<((?:[\w.-]+:)?library_images)\b[^>]*>[\s\S]*?<\/\1\s*>/g, '')
 }
 
 /** Load one mesh file. Returns { parts, warnings }. Throws with a readable message when the file cannot be read. */
@@ -84,7 +87,7 @@ export function loadMeshFile(file) {
   if (ext === 'dae') {
     const text = buf.toString('utf8')
     if (/<!DOCTYPE|<!ENTITY/i.test(text)) throw new Error(`${file} contains a DOCTYPE or ENTITY declaration; refused for safety`)
-    if (/<library_images>\s*<image/.test(text)) warnings.push(`${file}: image textures are not carried into the GLB; material colours are kept`)
+    if (/<(?:[\w.-]+:)?library_images\b[^>]*>\s*<(?:[\w.-]+:)?image\b/.test(text)) warnings.push(`${file}: image textures are not carried into the GLB; material colours are kept`)
     const previous = globalThis.DOMParser
     const quiet = { warn: console.warn, log: console.log, debug: console.debug }
     globalThis.DOMParser = DOMParser

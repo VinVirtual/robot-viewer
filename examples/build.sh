@@ -7,9 +7,11 @@ RV="$E/../robot-viewer"
 rm -rf "$E/dist"
 node "$E/wren/make-meshes.mjs"
 "$RV" build "$E/wren/wren.urdf" --out "$E/dist" --poses "$E/wren/poses.json" \
-  --title "Wren" --alt "Wren, a small made-up desk arm with a two-finger gripper"
+  --title "Wren" --alt "Wren, a small made-up desk arm with a two-finger gripper" \
+  --license MIT --source "robot-viewer example (made up)"
 "$RV" build "$E/so100/so100.urdf" --out "$E/dist" --name so100 --poses "$E/so100/poses.json" --orbit "-60 18" \
-  --title "SO-ARM100" --alt "SO-ARM100, an open-source 3D-printed robot arm designed by The Robot Studio"
+  --title "SO-ARM100" --alt "SO-ARM100, an open-source 3D-printed robot arm designed by The Robot Studio" \
+  --license Apache-2.0 --source "github.com/TheRobotStudio/SO-ARM100 at 141aea7, Simulation/SO100 (converted)"
 "$RV" verify "$E/dist"
 mkdir -p "$E/media"
 "$RV" record "$E/dist" wren --out "$E/media/wren-demo.mp4"

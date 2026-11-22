@@ -44,14 +44,28 @@ export class RobotViewerElement extends HTMLElement {
   connectedCallback() {
     if (!this._built) this._build()
     this._updateAr()
+    this._start.hidden = true
+    if (this._state !== 'idle') return
     if (this.getAttribute('loading') === 'eager') this.activate('eager')
     else if (reducedMotion()) this._offerStart('Motion is reduced on this device. The 3D view opens only when you ask.')
     else this._observe()
   }
 
   disconnectedCallback() {
+    this._teardown()
+  }
+
+  /** Back to the poster: stop observing, free the 3D view (and its WebGL context), forget any load in flight.
+      Connecting the element again starts over (lazy loading included). */
+  _teardown() {
     this._observer?.disconnect()
     this._observer = null
+    this._gen = (this._gen || 0) + 1
+    if (this._engine) { this._engine.dispose(); this._engine = null }
+    this._state = 'idle'
+    this._ready = null
+    this.removeAttribute('aria-busy')
+    if (this._status) this._say('')
   }
 
   attributeChangedCallback(name, oldValue, value) {
@@ -59,6 +73,12 @@ export class RobotViewerElement extends HTMLElement {
     if (name === 'poster') this._setPoster()
     if (name === 'alt') { this._poster.alt = value || ''; this._stage.setAttribute('aria-label', value || 'Robot model') }
     if (name === 'ar-glb' || name === 'ar-usdz') this._updateAr()
+    // a new model, or a different set of controls, means a fresh 3D view
+    if ((name === 'src' || name === 'controls' || name === 'ik') && this._state !== 'idle') {
+      this._teardown()
+      if (this.isConnected) this.activate('attribute')
+      return
+    }
     this._engine?.attributeChanged(name, value)
   }
 
@@ -121,6 +141,7 @@ export class RobotViewerElement extends HTMLElement {
     if (this._state !== 'idle') return this._ready
     this._state = 'loading'
     this._start.hidden = true
+    const gen = this._gen || 0
     this._ready = (async () => {
       if (!webglAvailable()) {
         this._state = 'still'
@@ -133,15 +154,19 @@ export class RobotViewerElement extends HTMLElement {
       this.setAttribute('aria-busy', 'true')
       try {
         const mod = await import(ENGINE_URL)
-        this._engine = await mod.mount(this, { stage: this._stage, panel: this._panel, poster: this._poster, status: this._status, reducedMotion: reducedMotion(), reason })
+        const engine = await mod.mount(this, { stage: this._stage, panel: this._panel, poster: this._poster, status: this._status, reducedMotion: reducedMotion(), reason })
+        // removed or restarted while loading: throw this view away at once
+        if (gen !== (this._gen || 0) || !this.isConnected) { engine.dispose(); return }
+        this._engine = engine
         this._state = 'ready'
         this._say('')
       } catch (e) {
+        if (gen !== (this._gen || 0)) return
         this._state = 'error'
         this._say('The 3D model could not be loaded. Showing a still image.')
         this.dispatchEvent(new CustomEvent('error', { detail: { message: String(e && e.message || e) } }))
       } finally {
-        this.removeAttribute('aria-busy')
+        if (gen === (this._gen || 0)) this.removeAttribute('aria-busy')
       }
     })()
     return this._ready

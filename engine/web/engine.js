@@ -12,9 +12,9 @@ import { MeshoptDecoder } from 'meshopt-js-decoder'
 import { resolveValues, indexRobot, controllableJoints, MOVING } from '../core/kinematics.js'
 import { createTween, sampleTween, tweenDuration } from '../core/tween.js'
 import { buildPanel } from './panel.js'
+import { checkDescription } from '../core/describe.js'
 import { createDrag } from './drag.js'
 
-const FORMAT = 'robot-viewer/1'
 let uidCounter = 0
 
 /** Read a CSS colour (any syntax the browser knows, oklch included) as linear-ready sRGB through a 1x1 canvas. */
@@ -29,16 +29,6 @@ function cssColor(value, fallback) {
     const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data
     return new Color().setRGB(r / 255, g / 255, b / 255, SRGBColorSpace)
   } catch { return new Color(fallback) }
-}
-
-/** Check the description stored in the GLB before trusting it. */
-export function checkDescription(d) {
-  if (!d || d.format !== FORMAT) throw new Error('this GLB was not made by robot-viewer build (no joints description inside)')
-  if (!Array.isArray(d.joints) || !Array.isArray(d.links) || typeof d.root !== 'string') throw new Error('the joints description in this GLB is incomplete')
-  for (const j of d.joints) {
-    if (typeof j.name !== 'string' || !Array.isArray(j.axis) || j.axis.length !== 3) throw new Error(`joint ${JSON.stringify(j.name)} is malformed`)
-  }
-  return d
 }
 
 /** Floor grid in round-number steps (1, 2 or 5 x 10^n metres) that fades out away from the robot. */
@@ -128,7 +118,8 @@ export async function mount(host, ui) {
   renderer.setClearColor(0x000000, 0)
   const canvas = renderer.domElement
   canvas.setAttribute('tabindex', '0')
-  canvas.setAttribute('role', 'img')
+  canvas.setAttribute('role', 'application')
+  canvas.setAttribute('aria-roledescription', '3D view')
   canvas.setAttribute('aria-label', `${host.getAttribute('alt') || robot.robot}. 3D view: arrow keys turn it, plus and minus zoom, Home resets.`)
 
   const scene = new Scene()
@@ -293,6 +284,9 @@ export async function mount(host, ui) {
   controls.maxPolarAngle = Math.PI * 0.495
   controls.update()
   controls.addEventListener('change', requestRender)
+  // OrbitControls turns off touch scrolling over the canvas; give vertical page scrolling back on phones.
+  // Dragging a part blocks scrolling for that one gesture only (see drag.js).
+  canvas.style.touchAction = 'pan-y'
 
   canvas.addEventListener('keydown', (e) => {
     const off = camera.position.clone().sub(controls.target)
@@ -334,7 +328,7 @@ export async function mount(host, ui) {
   }
 
   const goToPose = (name, { animate = true } = {}) => {
-    if (!(name in (robot.poses || {}))) return Promise.resolve(false)
+    if (!Object.hasOwn(robot.poses || {}, name)) return Promise.resolve(false)
     stopTween()
     setActive(name)
     const to = resolveValues(robot, robot.poses[name], index)
@@ -384,7 +378,7 @@ export async function mount(host, ui) {
   applyTheme()
 
   const initial = host.getAttribute('pose')
-  if (initial && initial in (robot.poses || {})) goToPose(initial, { animate: false })
+  if (initial && Object.hasOwn(robot.poses || {}, initial)) goToPose(initial, { animate: false })
   requestRender()
 
   return {
@@ -415,14 +409,35 @@ export async function mount(host, ui) {
     attributeChanged(name, value) {
       if (name === 'theme') applyTheme()
       if (name === 'grid') { grid.visible = value !== 'off'; requestRender() }
-      if (name === 'pose' && value) goToPose(value)
+      if (name === 'pose' && value && Object.hasOwn(robot.poses || {}, value)) goToPose(value)
     },
+    /** Free everything: the frame loop, listeners, GPU memory and the WebGL context itself. */
     dispose() {
+      if (frame) cancelAnimationFrame(frame)
+      frame = 0
+      stopTween()
       ro.disconnect()
       media.removeEventListener('change', applyTheme)
       drag && drag.dispose()
       controls.dispose()
+      const textures = new Set()
+      scene.traverse((o) => {
+        if (o.geometry) o.geometry.dispose()
+        for (const m of [].concat(o.material || [])) {
+          for (const v of Object.values(m)) if (v && v.isTexture) textures.add(v)
+          m.dispose()
+        }
+      })
+      if (scene.environment) textures.add(scene.environment)
+      for (const t of textures) t.dispose()
+      if (key.shadow.map) key.shadow.map.dispose()
+      renderer.renderLists.dispose()
       renderer.dispose()
+      renderer.forceContextLoss()
+      canvas.remove()
+      panel.replaceChildren()
+      panel.hidden = true
+      poster.classList.remove('gone')
     },
   }
 }

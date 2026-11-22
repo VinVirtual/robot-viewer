@@ -88,6 +88,9 @@ export function createDrag({ canvas, camera, setOrbit, robotNode, robot, index, 
 
   const onLeave = () => { if (!drag && lastHover) { lastHover = null; canvas.classList.remove('grab'); highlight(null); requestRender() } }
 
+  // a touch that grabbed a part must not scroll the page; other touches scroll as usual
+  const onTouchStart = (e) => { if (drag) e.preventDefault() }
+  canvas.addEventListener('touchstart', onTouchStart, { passive: false })
   canvas.addEventListener('pointerdown', onDown)
   canvas.addEventListener('pointermove', onMove)
   canvas.addEventListener('pointerup', end)
@@ -95,6 +98,7 @@ export function createDrag({ canvas, camera, setOrbit, robotNode, robot, index, 
   canvas.addEventListener('pointerleave', onLeave)
   return {
     dispose() {
+      canvas.removeEventListener('touchstart', onTouchStart)
       canvas.removeEventListener('pointerdown', onDown)
       canvas.removeEventListener('pointermove', onMove)
       canvas.removeEventListener('pointerup', end)

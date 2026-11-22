@@ -26,3 +26,5 @@ jobs:
         run: npm i -g playwright-core@1.64.1 --no-audit --no-fund
       - name: Unit, build and browser tests
         run: ./robot-viewer test
+      - name: Committed example passes the static CSP check
+        run: ./robot-viewer verify examples/dist --static

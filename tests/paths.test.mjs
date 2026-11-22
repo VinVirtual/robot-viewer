@@ -57,3 +57,18 @@ test('extensions are matched without regard to case', (t) => {
   writeFileSync(join(urdfDir, 'UP.STL'), 'x')
   assert.equal(resolveMeshPath('UP.STL', { urdfDir }), join(urdfDir, 'UP.STL'))
 })
+
+test('package:// without --package only works when a nearby folder has the package name', (t) => {
+  const root = tempDir(t)
+  writeFiles(root, { 'repo/urdf/r.urdf': '<robot/>', 'repo/meshes/a.stl': 'x', 'repo/other/b.stl': 'x' })
+  const urdfDir = join(root, 'repo', 'urdf')
+  assert.throws(() => resolveMeshPath('package://robot_description/meshes/a.stl', { urdfDir }), /pass --package/)
+  assert.throws(() => resolveMeshPath('package://repo2/other/b.stl', { urdfDir }), /pass --package/)
+  assert.equal(resolveMeshPath('package://robot_description/meshes/a.stl', { urdfDir, packageDir: join(root, 'repo') }), join(root, 'repo', 'meshes', 'a.stl'))
+})
+
+test('the usual ../meshes/ layout is refused with a hint to pass --package, and works with it', (t) => {
+  const { urdfDir, pkgDir } = layout(t)
+  assert.throws(() => resolveMeshPath('../meshes/a.stl', { urdfDir }), /pass --package/)
+  assert.equal(resolveMeshPath('../meshes/a.stl', { urdfDir, packageDir: pkgDir }), join(pkgDir, 'meshes', 'a.stl'))
+})

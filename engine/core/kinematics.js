@@ -34,9 +34,14 @@ export function indexRobot(robot) {
   const childrenOf = new Map()
   for (const j of robot.joints) childrenOf.set(j.parent, [...(childrenOf.get(j.parent) || []), j])
   // depth-first from the root gives parents before children
+  // depth-first without recursion, so a very deep chain cannot overflow the stack
   const order = []
-  const walk = (link) => { for (const j of childrenOf.get(link) || []) { order.push(j); walk(j.child) } }
-  walk(robot.root)
+  const stack = [...(childrenOf.get(robot.root) || [])].reverse()
+  while (stack.length) {
+    const j = stack.pop()
+    order.push(j)
+    stack.push(...[...(childrenOf.get(j.child) || [])].reverse())
+  }
   return { byName, byChild, childrenOf, order }
 }
 

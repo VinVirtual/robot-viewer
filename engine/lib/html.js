@@ -1,6 +1,7 @@
 // The demo page (index.html + demo.css + demo.js) and the copy-paste snippet.
 // The page has no inline script or style, so it runs under Content-Security-Policy: default-src 'self'.
-import { writeFileSync, copyFileSync, statSync, existsSync } from 'node:fs'
+import { readFileSync, statSync, existsSync } from 'node:fs'
+import { writeSafe } from './files.js'
 import { join, resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { FILES } from './bundle.js'
@@ -30,7 +31,8 @@ export function viewerTag(r, { base = '', indent = '' } = {}) {
 /** What to paste into a page: one module script (once per page) and the element. */
 export function snippetFor(r, { base = '' } = {}) {
   return [
-    `<!-- ${r.title}: load the component once per page -->`,
+    // no robot name or title in the comment: text inside a comment is not escaped, and "-->" would end it
+    '<!-- robot-viewer: load the component once per page -->',
     `<script type="module" src="${escapeHtml(join2(base, FILES.entry))}"></script>`,
     viewerTag(r, { base }),
   ].join('\n')
@@ -48,6 +50,7 @@ export function demoHtml(manifest, { sizes = {} } = {}) {
       ['Links', r.stats.links],
       ['Triangles', r.stats.triangles.toLocaleString('en-US')],
       sizes[r.glb] && ['Model file', human(sizes[r.glb])],
+      r.license && ['Model licence', r.license],
     ].filter(Boolean)
     return `    <section class="robot" aria-labelledby="${id}">
       <header class="robot-head">
@@ -97,7 +100,7 @@ ${sections}
 export function writeDemo(out, manifest) {
   const sizes = {}
   for (const r of manifest.robots) if (existsSync(join(out, r.glb))) sizes[r.glb] = statSync(join(out, r.glb)).size
-  writeFileSync(join(out, 'index.html'), demoHtml(manifest, { sizes }))
-  copyFileSync(join(WEB, 'demo.css'), join(out, 'demo.css'))
-  copyFileSync(join(WEB, 'demo.js'), join(out, 'demo.js'))
+  writeSafe(out, 'index.html', demoHtml(manifest, { sizes }))
+  writeSafe(out, 'demo.css', readFileSync(join(WEB, 'demo.css')))
+  writeSafe(out, 'demo.js', readFileSync(join(WEB, 'demo.js')))
 }

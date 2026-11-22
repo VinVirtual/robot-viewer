@@ -10,7 +10,7 @@ You give it a **URDF** (the standard robot description: links, joints, limits, a
 
 It is packaged as a [Claude Code](https://claude.com/claude-code) skill (`SKILL.md` tells the assistant how to use it) and also works by hand from the command line.
 
-Example: two robots on one demo page, [`examples/dist/`](examples/dist/) (serve the folder and open `index.html`). [Wren](examples/wren/) is made up for this repository; the [SO-ARM100](examples/so100/) is an open-source arm by The Robot Studio (Apache-2.0). Videos of the viewer in use: [`examples/media/wren-demo.mp4`](examples/media/wren-demo.mp4) and [`examples/media/so100-demo.mp4`](examples/media/so100-demo.mp4) (dark theme), each about 13 seconds, recorded by `robot-viewer record`.
+Example: two robots on one demo page, [`examples/dist/`](examples/dist/) (serve the folder and open `index.html`). [Wren](examples/wren/) is made up for this repository; the [SO-ARM100](examples/so100/) is an open-source arm by The Robot Studio (Apache-2.0). The SO-ARM100 GLB, poster and video in this repository are modified versions of its meshes (converted, compressed and rendered), distributed under Apache-2.0; see [ASSETS.md](ASSETS.md). Videos of the viewer in use: [`examples/media/wren-demo.mp4`](examples/media/wren-demo.mp4) and [`examples/media/so100-demo.mp4`](examples/media/so100-demo.mp4) (dark theme), each about 13 seconds, recorded by `robot-viewer record`.
 
 ```html
 <script type="module" src="/robots/robot-viewer.js"></script>
@@ -51,14 +51,17 @@ Example: two robots on one demo page, [`examples/dist/`](examples/dist/) (serve 
 | `loading` | `eager` loads 3D at once instead of when scrolled into view |
 | `ar-glb`, `ar-usdz` | AR files; shows "View in your room" on phones that can open them |
 
+Changing `src`, `controls` or `ik` after loading rebuilds the 3D view; `pose`, `theme`, `grid`, `poster`, `alt` and the AR attributes apply in place; `orbit` and `loading` are read when the view is built. Removing the element frees its WebGL context and GPU memory; putting it back starts again.
+
 JavaScript: `el.joints` (names, types, limits), `el.poses`, `el.values`, `el.setJoint(name, radiansOrMetres)`, `el.setJoints({...})`, `await el.goToPose(name, { animate })` (resolves `true` when it arrives, `false` if interrupted), `el.activate()`. Events: `load`, `joint-change` (`detail.values`, `detail.source`: `slider`, `pose`, `drag`, `api`), `pose-change`, `drag-end`, `fallback` (no WebGL), `error`.
 
 Styling: CSS variables on the element, for example `robot-viewer { --rv-accent: #0a7f6f; --rv-aspect: 1 / 1; }`. The full list: `--rv-surface`, `--rv-stage`, `--rv-stage-glow`, `--rv-ink`, `--rv-muted`, `--rv-line`, `--rv-accent`, `--rv-accent-ink`, `--rv-warn`, `--rv-grid`, `--rv-shadow`, `--rv-radius-frame`, `--rv-radius-control`, `--rv-panel-width`, `--rv-aspect`, `--rv-aspect-wide`, `--rv-font`, `--rv-mono`. Parts for `::part()`: `frame`, `stage`, `panel`, `poster`, `status`, `start-button`, `ar-button`.
 
 ### Access and comfort
 
-- Every joint is a native range input with a label, the value spoken in degrees or millimetres, and the limits printed under it. Arrow keys step half a degree (or half a millimetre); Home and End go to the limits; Page Up and Page Down take bigger steps. Pose buttons say which one is active (`aria-pressed`).
+- Every joint is a native range input with a label, the value spoken in degrees or millimetres, and the limits printed under it. Arrow keys take about 1/400 of the range (at most half a degree; short slides get steps down to 0.001 mm), Shift + arrow ten steps, Page Up and Page Down bigger steps, Home and End the limits. Pose buttons say which one is active (`aria-pressed`).
 - The 3D view takes focus: arrow keys turn it, `+` and `-` zoom, Home resets.
+- **Phones**: the view lets the page scroll vertically; a touch that grabs a part of the robot (with `ik`) holds the page still for that drag only.
 - **Reduced motion**: the poster stays and a button opens the 3D view on request; poses then jump instead of moving, and the view does not drift after a drag.
 - **No WebGL**: the poster stays with a short note. Nothing else is downloaded.
 - **Lazy**: until the element is near the screen only the 5 KB loader and the poster load.
@@ -85,6 +88,9 @@ npx playwright-core install chromium
 | `PLAYWRIGHT_CORE` | `playwright-core` found locally or in the global npm folder |
 | `ROBOT_VIEWER_CHROME` | installed Chrome, else Chromium, else Playwright's own |
 | `FF` | `ffmpeg` on the PATH, else the one inside `imageio-ffmpeg` |
+| `ROBOT_VIEWER_PYTHON` | `python3` on the PATH (only used to find `imageio-ffmpeg`, run with `python -I`) |
+
+Helper programs are run from the temp folder with `NODE_PATH` and `PYTHON*` variables removed, and Playwright is looked up only in `PLAYWRIGHT_CORE` (an absolute path), this skill's own `node_modules` and the global npm folder, never in the folder you run the command from.
 
 ## Quick start
 
@@ -95,7 +101,7 @@ npx playwright-core install chromium
 ./robot-viewer verify public/robots
 ```
 
-Then paste the printed snippet into a page. To try the example: `examples/build.sh` (rebuilds both robots, checks them and records the videos), then serve `examples/dist` with any static server, for example `npx serve examples/dist` or `python3 -m http.server -d examples/dist`.
+Then paste the printed snippet into a page, and publish `robot-viewer-licenses.txt` with the JS files (it holds the MIT texts of three.js and meshoptimizer). To try the example: `examples/build.sh` (rebuilds both robots, checks them and records the videos), then serve `examples/dist` with any static server, for example `npx serve examples/dist` or `python3 -m http.server -d examples/dist`.
 
 ## Commands
 
@@ -111,7 +117,7 @@ robot-viewer record <dist> <name> --out demo.mp4   a short video of the viewer i
 robot-viewer test                         the tests
 ```
 
-`build` options: `--poses file`, `--name` (file name, default from the robot's name), `--title`, `--alt`, `--package dir` (for `package://` paths), `--simplify 0.01..1` (share of vertices to keep), `--compress meshopt|none`, `--clamp` (pull pose values inside the limits instead of failing), `--no-ik`, `--ar-glb`, `--ar-usdz`, `--no-poster`, `--poster-pose`, `--orbit "az el"`, `--base /url/` (prefix in the snippet), `--verify` (run `verify` after), `--strict` (fail when a file is over budget). Build several robots into the same `--out`; they share the component and the demo page lists them all.
+`build` options: `--poses file`, `--name` (file name, default from the robot's name), `--title`, `--alt`, `--license` and `--source` (written into the GLB's `asset.copyright` and the joints description, and shown on the demo page), `--package dir` (the package folder, for `package://` and `../meshes/` paths), `--simplify 0.01..1` (share of vertices to keep), `--compress meshopt|none`, `--clamp` (pull pose values inside the limits instead of failing), `--no-ik`, `--ar-glb`, `--ar-usdz`, `--no-poster`, `--poster-pose`, `--orbit "az el"`, `--base /url/` (prefix in the snippet), `--verify` (run `verify` after), `--strict` (fail when a file is over budget). Build several robots into the same `--out`; they share the component and the demo page lists them all.
 
 ### Poses file
 
@@ -134,11 +140,11 @@ Measured on the example (`examples/dist/size-report.txt`):
 
 | File | Bytes | Gzip | Budget |
 |---|---|---|---|
-| `robot-viewer.js` (loader) | about 15.6 KB | about 5 KB | 10 KB gzipped |
-| `robot-viewer-engine.js` | about 673 KB | about 174 KB | 200 KB gzipped |
+| `robot-viewer.js` (loader) | about 16 KB | about 5 KB | 10 KB gzipped |
+| `robot-viewer-engine.js` | about 678 KB | about 174 KB | 200 KB gzipped |
 | `wren.glb` (6,860 triangles) | 122 KB | | 4 MB |
 | `so100.glb` (60,682 triangles, from 3.2 MB of STL) | 1.04 MB | | 4 MB |
-| posters (`.webp`, 1200x900) | 27 KB and 59 KB | | 250 KB |
+| posters (`.webp`, 1200x900) | 25 KB and 61 KB | | 250 KB |
 
 ## AR
 
@@ -165,9 +171,11 @@ The files are copied into `dist/` as `<name>.ar.glb` and `<name>.ar.usdz`, and t
 
 A URDF from someone else is untrusted input:
 
-- Meshes are read only from inside the URDF's folder or the package folder, after following symbolic links, and only as `.stl`, `.obj` or `.dae`. Absolute paths, `file://`, `http(s)://` and paths that climb out with `..` are refused with the reason.
+- Meshes are read only from inside the URDF's folder or the package folder given with `--package`, after following symbolic links, and only as `.stl`, `.obj` or `.dae`. Without `--package`, `package://name/...` is looked up only when the URDF's folder or the one above it is called `name`; otherwise the build asks for `--package`. Absolute paths, `file://`, `http(s)://` and paths that climb out with `..` are refused with the reason and a hint.
+- Output files are written to a temporary name and renamed into place; a symbolic link where an output file goes is refused. `robots.json` in the output folder is checked field by field before its values reach a page.
+- The joints description inside a GLB is checked by the browser before use (finite numbers, unit axes, a real tree).
 - XML with `DOCTYPE` or `ENTITY` declarations is refused (in the URDF and in COLLADA files). URDF files over 8 MB and meshes over 64 MB are refused.
-- Names and titles are escaped in every generated page. Pose names must be short labels.
+- Names and titles are escaped in every generated page and never placed inside HTML comments. Text from the robot file is stripped of terminal control sequences before it is printed. Pose names must be short labels.
 - The local server used for posters, `verify` and `record` listens on 127.0.0.1 only, answers only requests addressed to it, serves only the dist folder, and sends the strict policy header.
 
 ## Tests
@@ -176,7 +184,7 @@ A URDF from someone else is untrusted input:
 ./robot-viewer test     # or: npm test
 ```
 
-128 tests: URDF parsing and its errors, limits and mimic joints, forward kinematics, the CCD solver (reach, limits, prismatic joints, mimic and locked joints, unreachable targets), pose validation, tween timing, mesh loading for all three formats, the GLB's node tree and joints description, decoding with the same pure-JavaScript decoder the browser uses, mesh path safety, AR link choice, the static CSP checker, every generated page and script passing it, the bundle size budget, the size report and the command line. Seven browser tests load the component in Chrome under `default-src 'self'` (no violations, lazy loading, keyboard sliders, smooth poses, reduced motion, no WebGL, drag-to-move); they are skipped when Playwright or WebGL is missing. The GitHub workflow installs `playwright-core` and uses the runner's Chrome.
+The tests cover URDF parsing and its errors, limits and mimic joints, forward kinematics, the CCD solver (reach, limits, prismatic joints, mimic and locked joints, unreachable targets), pose validation, tween timing, mesh loading for all three formats, the GLB's node tree and joints description, decoding with the same pure-JavaScript decoder the browser uses, mesh path safety, AR link choice, the static CSP checker, every generated page and script passing it, the bundle size budget, the size report and the command line. Browser tests load the component in Chrome under `default-src 'self'` (no violations, lazy loading, keyboard sliders, smooth poses, reduced motion, no WebGL, drag-to-move, freeing WebGL contexts when viewers are removed, attribute changes, touch scrolling). They are skipped when Playwright or WebGL is missing, except on CI (`CI` set), where a skip is a failure. The GitHub workflow installs `playwright-core`, uses the runner's Chrome, runs `verify --static` on the committed example, and a test checks that the committed example's bundle matches a fresh one.
 
 ## Licence
 

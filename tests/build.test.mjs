@@ -160,7 +160,7 @@ test('CLI: build without a poster, then verify --static and sizes', (t) => {
   const out = tempDir(t)
   const b = run(['build', join(WREN, 'wren.urdf'), '--out', out, '--poses', join(WREN, 'poses.json'), '--no-poster', '--base', '/robots/'])
   assert.equal(b.status, 0, b.stderr)
-  assert.match(b.stdout, /Paste into your page:\n<!-- wren: load the component once per page -->\n<script type="module" src="\/robots\/robot-viewer\.js">/)
+  assert.match(b.stdout, /Paste into your page:\n<!-- robot-viewer: load the component once per page -->\n<script type="module" src="\/robots\/robot-viewer\.js">/)
   const v = run(['verify', out, '--static'])
   assert.equal(v.status, 0, v.stdout + v.stderr)
   assert.match(v.stdout, /every page and script works under default-src 'self'/)

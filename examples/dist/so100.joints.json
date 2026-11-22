@@ -226,5 +226,7 @@
     }
   },
   "defaultPose": "ready",
-  "bounds": null
+  "bounds": null,
+  "license": "Apache-2.0",
+  "source": "github.com/TheRobotStudio/SO-ARM100 at 141aea7, Simulation/SO100 (converted)"
 }

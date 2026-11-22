@@ -1,6 +1,6 @@
 ---
 name: robot-viewer
-description: Turn any URDF robot (robot description file with links, joints and STL, OBJ or COLLADA meshes) into one embeddable, self-hosted web component. Converts the robot to a single meshopt-compressed GLB that keeps the link and joint tree plus a joints JSON, then generates a <robot-viewer> custom element (three.js bundled locally, no CDN, works under a strict Content-Security-Policy "default-src 'self'") with orbit, joint sliders with the real limits, named poses with smooth moves, drag-a-part inverse kinematics, a poster image rendered in headless Chrome for no-WebGL and reduced-motion visitors, keyboard-accessible sliders, light and dark themes through CSS variables, lazy loading when scrolled into view and an optional AR button. Outputs a dist/ folder, a snippet to paste and a size report. Use whenever the user wants to show a robot, robot arm or URDF model on a website, portfolio, docs page or product page, an interactive 3D robot viewer or configurator, joint sliders in the browser, "embed my URDF", "URDF to GLB", "robot web component", a viewer that works under a strict CSP, or a poster or short video of a robot being posed in a viewer.
+description: Turn any URDF robot (links, joints, STL/OBJ/COLLADA meshes) into one embeddable, self-hosted web component. Converts the robot to a single meshopt-compressed GLB that keeps the link and joint tree plus a joints JSON, and generates a <robot-viewer> element (three.js bundled locally, no CDN, works under Content-Security-Policy default-src 'self') with orbit, joint sliders with real limits, named poses with smooth moves, drag-a-part inverse kinematics, a poster rendered in headless Chrome for no-WebGL and reduced motion, keyboard-accessible sliders, light and dark themes, lazy loading and an optional AR button. Outputs a dist/ folder, a snippet and a size report. Use whenever the user wants a robot, robot arm or URDF model on a website, portfolio or docs page, an interactive 3D robot viewer, joint sliders in the browser, "embed my URDF", "URDF to GLB", a robot web component, a viewer that passes a strict CSP, or a poster or short video of a robot in a viewer.
 ---
 
 # robot-viewer
@@ -12,8 +12,8 @@ Skill folder (written `$V` below): this folder. Every command is `$V/robot-viewe
 ## Workflow
 
 1. `$V/robot-viewer check`. `npm ci` in `$V` if packages are missing. Chrome with WebGL is needed only for posters, `verify` and `record`; ffmpeg only for `record`.
-2. **Rights.** Ask where the robot model came from unless it is clearly the user's own. The GLB is a copy every visitor downloads, so the user needs the right to redistribute the meshes. Many public robot descriptions do not allow it. Record the source and licence.
-3. `$V/robot-viewer inspect <robot.urdf>`: joint names, types, limits in degrees or metres, meshes found or refused. Xacro must be expanded first (`xacro x.urdf.xacro > x.urdf`). For `package://` meshes outside the usual `urdf/` + `meshes/` layout pass `--package <folder>`.
+2. **Rights.** Ask where the robot model came from unless it is clearly the user's own. The GLB, poster and any video are modified copies (derivative works) of the meshes that every visitor downloads, so the user needs the right to redistribute and modify them. Many public robot descriptions do not allow it. Pass `--license` and `--source` to the build: they are written into the GLB (`asset.copyright`) and shown on the demo page. Keep the upstream licence (and NOTICE file, if there is one) with the published files.
+3. `$V/robot-viewer inspect <robot.urdf>`: joint names, types, limits in degrees or metres, meshes found or refused. Xacro must be expanded first (`xacro x.urdf.xacro > x.urdf`). Pass `--package <package folder>` (the folder holding both `urdf/` and `meshes/`) when meshes are written as `package://name/...` and that folder is not called `name`, or as `../meshes/...`.
 4. Write a **poses file** with the user, using only joint names from `inspect`:
    ```json
    { "units": "deg", "default": "home", "poses": { "home": { "shoulder": -12, "elbow": 118 }, "reach": { ... } } }
@@ -33,11 +33,11 @@ Skill folder (written `$V` below): this folder. Every command is `$V/robot-viewe
 
 ## Putting it on a site
 
-- Copy the whole `dist/` folder (or just `robot-viewer.js`, `robot-viewer-engine.js`, `robot-viewer.css` and each robot's `.glb` and `.poster.*`) into the site's static files. The two JS files must stay side by side.
+- Copy the whole `dist/` folder into the site's static files. At the least keep `robot-viewer.js`, `robot-viewer-engine.js`, `robot-viewer.css`, `robot-viewer-licenses.txt` (the MIT texts of three.js and meshoptimizer, which their licences require you to ship) and each robot's `.glb` and `.poster.*`. The JS files must stay side by side.
 - Paste the snippet. The `<script type="module">` goes in once per page, however many robots it shows.
 - Size: the element fills its width; height comes from `--rv-aspect` (default `4 / 3`) or a CSS height. When it is 760 px or wider the control panel moves to the side (`--rv-aspect-wide`, default `16 / 9`).
 - Restyle with CSS variables on the element: `--rv-accent`, `--rv-surface`, `--rv-ink`, `--rv-line`, `--rv-stage`, `--rv-grid`, `--rv-shadow`, `--rv-radius-frame`, `--rv-panel-width`, `--rv-font`, `--rv-mono`. `theme="dark"` or `theme="light"` forces a theme; otherwise it follows the visitor's setting.
-- Attributes: `src`, `poster`, `alt`, `pose`, `orbit`, `controls` (`full`, `poses`, `none`), `ik`, `grid="off"`, `loading="eager"`, `theme`, `ar-glb`, `ar-usdz`.
+- Attributes: `src`, `poster`, `alt`, `pose`, `orbit`, `controls` (`full`, `poses`, `none`), `ik`, `grid="off"`, `loading="eager"`, `theme`, `ar-glb`, `ar-usdz`. Changing `src`, `controls` or `ik` after loading rebuilds the 3D view; `pose`, `theme`, `grid`, `poster`, `alt` and the AR attributes apply in place; `orbit` and `loading` are read when the view is built. Removing the element frees its WebGL context.
 - React, Vue, Svelte: load the script once on the client and render `<robot-viewer ...>` as a normal element. Do not render it on the server with properties; attributes are enough.
 - Serve `.glb` as `model/gltf-binary` (most hosts already do). Turn on gzip or brotli for `.js`.
 
@@ -55,9 +55,11 @@ The viewer shows "View in your room" only when it is given AR files and the visi
 ## Troubleshooting
 
 - **"not found" for meshes**: `inspect` shows where it looked. Use `--package <folder>` for `package://name/...` paths, or fix the path in the URDF.
-- **"leads outside the URDF and package folders"** or **"absolute path"**: refused on purpose. Copy the meshes next to the URDF.
+- **"leads outside the URDF folder"**: the usual ROS layout (`urdf/robot.urdf` with `../meshes/...` or `package://name/meshes/...`) needs `--package <folder that holds urdf/ and meshes/>`. Anything outside that folder is refused on purpose.
+- **"absolute path"**: refused on purpose. Copy the meshes into the package folder and use relative paths.
 - **Robot lying on its side**: the URDF is not Z-up, or a COLLADA file declares the wrong up axis. Check `<up_axis>` in the `.dae`.
 - **Robot floating or under the floor**: the floor sits under the default pose. Choose a default pose that rests on the base.
 - **Blank grey box in the page**: open the browser console. A 404 means the `.glb` path in `src` is wrong (it is relative to the page, or use `--base`). A policy error means the site's own CSP is stricter than `default-src 'self'` (for example `connect-src 'none'`).
 - **No poster**: Chrome with WebGL was not found. The build still works; run `poster` later on a machine that has it.
+- **`record` cannot find ffmpeg**: install it, or set `FF=/path/to/ffmpeg`, or `ROBOT_VIEWER_PYTHON` to a Python that has `imageio-ffmpeg`.
 - **`record` is slow**: rendering is in software (SwiftShader) without a GPU, roughly 5 to 6 frames a second at 1280x720.

@@ -31,3 +31,9 @@ test('only http(s) model addresses are used', () => {
   assert.equal(arLink({ glb: 'javascript:alert(1)', base, userAgent: ANDROID }).mode, 'none')
   assert.equal(arLink({ usdz: 'data:model/usd,AAAA', base, userAgent: IPHONE, supportsRelAr: true }).mode, 'none')
 })
+
+test('Scene Viewer is offered only for https model addresses', () => {
+  assert.equal(arLink({ glb: 'wren.glb', base: 'http://example.org/page.html', userAgent: ANDROID }).mode, 'none')
+  assert.equal(arLink({ glb: 'http://example.org/wren.glb', base, userAgent: ANDROID }).mode, 'none')
+  assert.equal(arLink({ glb: 'https://cdn.example.org/wren.glb', base: 'http://example.org/', userAgent: ANDROID }).mode, 'sceneviewer')
+})

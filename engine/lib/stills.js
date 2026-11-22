@@ -6,6 +6,8 @@ import { launchBrowser } from './env.js'
 import { watchPage } from './verify.js'
 import { escapeHtml } from './html.js'
 import { FILES } from './bundle.js'
+import { writeSafe } from './files.js'
+import { dirname, basename } from 'node:path'
 
 export function stillPage({ glb, orbit = '35 18', theme = 'light' }) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>still</title>
@@ -51,9 +53,9 @@ export async function renderStills(dir, shots, { scale = 2, webp = true, log = (
       const violations = [...found.violations, ...(await page.evaluate(() => window.__rvViolations))]
       if (violations.length) throw new Error(`policy violations while drawing the still: ${violations.join('; ')}`)
       const full = sharp(png).resize(s.width, s.height)
-      await full.clone().png({ compressionLevel: 9, palette: false }).toFile(`${s.out}.png`)
+      writeSafe(dirname(s.out), `${basename(s.out)}.png`, await full.clone().png({ compressionLevel: 9, palette: false }).toBuffer())
       written.push(`${s.out}.png`)
-      if (webp) { await full.clone().webp({ quality: 82, alphaQuality: 90 }).toFile(`${s.out}.webp`); written.push(`${s.out}.webp`) }
+      if (webp) { writeSafe(dirname(s.out), `${basename(s.out)}.webp`, await full.clone().webp({ quality: 82, alphaQuality: 90 }).toBuffer()); written.push(`${s.out}.webp`) }
       log(`still: ${written.slice(-2).join(', ')}`)
       await page.close()
     }

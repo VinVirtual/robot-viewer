@@ -2,9 +2,9 @@
   "files": [
     {
       "file": "robot-viewer.js",
-      "bytes": 15645,
-      "gzip": 5066,
-      "brotli": 4422,
+      "bytes": 16299,
+      "gzip": 5272,
+      "brotli": 4619,
       "budget": {
         "kind": "gzip",
         "bytes": 10240
@@ -13,9 +13,9 @@
     },
     {
       "file": "robot-viewer-engine.js",
-      "bytes": 673124,
-      "gzip": 172784,
-      "brotli": 142333,
+      "bytes": 677705,
+      "gzip": 174387,
+      "brotli": 143935,
       "budget": {
         "kind": "gzip",
         "bytes": 204800
@@ -24,9 +24,9 @@
     },
     {
       "file": "robot-viewer.css",
-      "bytes": 9565,
-      "gzip": 2656,
-      "brotli": 2271,
+      "bytes": 9566,
+      "gzip": 2661,
+      "brotli": 2279,
       "budget": {
         "kind": "gzip",
         "bytes": 6144
@@ -34,10 +34,18 @@
       "over": false
     },
     {
+      "file": "robot-viewer-licenses.txt",
+      "bytes": 3989,
+      "gzip": 907,
+      "brotli": 695,
+      "budget": null,
+      "over": false
+    },
+    {
       "file": "index.html",
-      "bytes": 3687,
-      "gzip": 1213,
-      "brotli": 933,
+      "bytes": 3817,
+      "gzip": 1236,
+      "brotli": 944,
       "budget": null,
       "over": false
     },
@@ -59,16 +67,16 @@
     },
     {
       "file": "robots.json",
-      "bytes": 1185,
-      "gzip": 423,
-      "brotli": 370,
+      "bytes": 1386,
+      "gzip": 521,
+      "brotli": 456,
       "budget": null,
       "over": false
     },
     {
       "file": "wren.glb",
-      "bytes": 121748,
-      "gzip": 50708,
+      "bytes": 121872,
+      "gzip": 50790,
       "brotli": 43625,
       "budget": {
         "kind": "bytes",
@@ -78,9 +86,9 @@
     },
     {
       "file": "wren.joints.json",
-      "bytes": 4778,
-      "gzip": 851,
-      "brotli": 732,
+      "bytes": 4844,
+      "gzip": 892,
+      "brotli": 760,
       "budget": null,
       "over": false
     },
@@ -108,9 +116,9 @@
     },
     {
       "file": "so100.glb",
-      "bytes": 1044764,
-      "gzip": 691002,
-      "brotli": 588484,
+      "bytes": 1044996,
+      "gzip": 691191,
+      "brotli": 587478,
       "budget": {
         "kind": "bytes",
         "bytes": 4194304
@@ -119,9 +127,9 @@
     },
     {
       "file": "so100.joints.json",
-      "bytes": 3841,
-      "gzip": 737,
-      "brotli": 647,
+      "bytes": 3960,
+      "gzip": 825,
+      "brotli": 728,
       "budget": null,
       "over": false
     },
@@ -148,7 +156,7 @@
       "over": false
     }
   ],
-  "firstLoadGzip": 5066,
-  "viewerGzip": 177850,
+  "firstLoadGzip": 5272,
+  "viewerGzip": 179659,
   "over": []
 }

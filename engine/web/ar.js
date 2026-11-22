@@ -15,11 +15,13 @@ export function arLink({ glb = null, usdz = null, base, userAgent = '', supports
     if (u) return { mode: 'quicklook', href: u.href }
   }
   if (glb && /Android/i.test(userAgent) && !/Instagram|FBAN|FBAV/i.test(userAgent)) {
-    const u = safe(abs(glb))
+    // Scene Viewer fetches the model itself from the public internet, and only over https
+    const u = abs(glb)?.protocol === 'https:' ? abs(glb) : null
     if (u) {
       const params = new URLSearchParams({ file: u.href, mode: 'ar_preferred' })
       if (title) params.set('title', title)
-      const fallback = abs('') ? abs('').href : u.href
+      const page = abs('')
+      const fallback = page && page.protocol === 'https:' ? page.href : u.href
       const href = `intent://arvr.google.com/scene-viewer/1.0?${params}#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(fallback)};end;`
       return { mode: 'sceneviewer', href }
     }

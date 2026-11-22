@@ -2,7 +2,8 @@
 # Checks what robot-viewer needs and prints how to fix anything missing. Tested on Linux only.
 #   Required for `build`: Node.js 20+, and the npm packages in package.json (npm ci).
 #   Optional: Playwright + Chrome/Chromium with WebGL (posters, `verify`, `record`), ffmpeg (`record`).
-# Overrides: PLAYWRIGHT_CORE (folder of playwright-core), ROBOT_VIEWER_CHROME (browser binary), FF (ffmpeg binary).
+# Overrides: PLAYWRIGHT_CORE (absolute path of playwright-core), ROBOT_VIEWER_CHROME (browser binary), FF (ffmpeg binary),
+#            ROBOT_VIEWER_PYTHON (a Python with imageio-ffmpeg).
 R="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ok=1
 good() { echo "ok   $1"; }
@@ -35,6 +36,6 @@ else opt "no browser with WebGL: posters, \`verify\` and \`record\` are skipped 
   "$(echo "$out" | head -2)"; fi
 
 if out="$(cd "$R" && node --input-type=module -e "const { findFF } = await import('./engine/lib/env.js'); console.log(findFF())" 2>&1)"; then good "ffmpeg ($out) (record)"
-else opt "no ffmpeg: \`record\` is unavailable" "install ffmpeg (apt install ffmpeg / brew install ffmpeg), or pip install imageio-ffmpeg, or set FF=/path/to/ffmpeg"; fi
+else opt "no ffmpeg: \`record\` is unavailable" "install ffmpeg (apt install ffmpeg / brew install ffmpeg), or set FF=/path/to/ffmpeg, or ROBOT_VIEWER_PYTHON to a Python with imageio-ffmpeg"; fi
 
 if [ $ok = 1 ]; then echo "all good"; else echo "something is missing: fix the MISS lines above and run this again"; exit 1; fi

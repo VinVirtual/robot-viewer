@@ -44,7 +44,7 @@ export function validatePoses(input, robot, { clamp = false } = {}) {
   if (names.length > MAX_POSES) errors.push(`${names.length} poses; at most ${MAX_POSES} fit as buttons`)
   const byName = new Map(robot.joints.map((j) => [j.name, j]))
   const jointNames = [...byName.keys()]
-  const poses = {}
+  const poses = Object.create(null)
   for (const name of names) {
     if (!POSE_NAME.test(name)) { errors.push(`pose name "${name}" must be 1 to 32 letters, digits, spaces, "-" or "_", starting with a letter or digit`); continue }
     const values = raw[name]
@@ -67,6 +67,6 @@ export function validatePoses(input, robot, { clamp = false } = {}) {
     poses[name] = out
   }
   let defaultPose = input.default ?? null
-  if (defaultPose !== null && !(defaultPose in raw)) { errors.push(`"default" is "${defaultPose}", which is not one of the poses (${names.join(', ') || 'none'})`); defaultPose = null }
-  return result(poses, names.filter((n) => n in poses), defaultPose ?? (names.find((n) => n in poses) || null))
+  if (defaultPose !== null && (typeof defaultPose !== 'string' || !Object.hasOwn(raw, defaultPose))) { errors.push(`"default" is "${defaultPose}", which is not one of the poses (${names.join(', ') || 'none'})`); defaultPose = null }
+  return result(poses, names.filter((n) => Object.hasOwn(poses, n)), defaultPose !== null && Object.hasOwn(poses, defaultPose) ? defaultPose : (names.find((n) => Object.hasOwn(poses, n)) || null))
 }

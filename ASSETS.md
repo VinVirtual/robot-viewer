@@ -10,7 +10,14 @@ Checked on 22 November 2026 from each project's own licence file or package meta
 | Wren, the made-up example arm: URDF, poses and the script that writes its meshes | `examples/wren/` | written for this repository | MIT (this repository) |
 | Everything else | | written for this repository | MIT (this repository) |
 
-The SO-ARM100 files are redistributed as published, under the Apache License 2.0. Copyright remains with their authors (The Robot Studio and contributors). The poses file `examples/so100/poses.json` is ours.
+The SO-ARM100 files in `examples/so100/` are redistributed as published, under the Apache License 2.0. Copyright remains with their authors (The Robot Studio and contributors). The poses file `examples/so100/poses.json` is ours.
+
+**Modified versions (derivative works) of the SO-ARM100 files**, also under Apache-2.0, with the same copyright:
+
+- `examples/dist/so100.glb`: the 13 meshes converted to glTF, welded, quantized and meshopt-compressed, with the URDF's joints, limits and our poses added. Its `asset.copyright` field names the source and licence.
+- `examples/dist/so100.joints.json`, `so100.poster.png`, `so100.poster.webp`, `examples/media/so100-poster.png` and `examples/media/so100-demo.mp4`: data taken from the URDF, and images and video rendered from the meshes.
+
+These changes were made by robot-viewer for this repository. The upstream repository has no NOTICE file at the commit used (checked on 22 November 2026); its `LICENSE` is in `examples/so100/LICENSE`.
 
 ## In the files `build` writes (`dist/`)
 
@@ -21,7 +28,7 @@ The SO-ARM100 files are redistributed as published, under the Apache License 2.0
 | [three](https://threejs.org) (core, GLTFLoader, OrbitControls, RoomEnvironment) | 0.187.0 | MIT | Copyright 2010-2026 three.js authors |
 | [meshoptimizer](https://github.com/zeux/meshoptimizer) reference decoder (`meshopt_decoder_reference.js`, pure JavaScript) | 1.3.0 | MIT | Copyright 2016-2026 Arseny Kapoulkine |
 
-Both notices are in the banner at the top of the bundle. Robot models you convert keep their own licences; the GLB is a copy of them.
+Short notices are in the banner at the top of the bundle, and `build` writes the full MIT texts of both, plus robot-viewer's own, to `robot-viewer-licenses.txt` next to the bundle. Publish that file with the JS files. Robot models you convert keep their own licences; the GLB, posters and videos are modified copies of them (pass `--license` and `--source` to record them in the GLB).
 
 ## Used while building (not shipped)
 

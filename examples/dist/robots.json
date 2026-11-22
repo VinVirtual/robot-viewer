@@ -19,6 +19,8 @@
         "inspect"
       ],
       "defaultPose": "home",
+      "license": "MIT",
+      "source": "robot-viewer example (made up)",
       "stats": {
         "links": 9,
         "joints": 8,
@@ -45,6 +47,8 @@
         "up"
       ],
       "defaultPose": "ready",
+      "license": "Apache-2.0",
+      "source": "github.com/TheRobotStudio/SO-ARM100 at 141aea7, Simulation/SO100 (converted)",
       "stats": {
         "links": 7,
         "joints": 6,

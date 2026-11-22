@@ -4,11 +4,29 @@ import { controllableJoints, jointRange, MOVING } from '../core/kinematics.js'
 const DEG = 180 / Math.PI
 const NEAR = 0.04 // within 4% of a limit counts as "near"
 
+const NICE = [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50]
+
+/** Slider step in display units: about 400 steps across the range, rounded to 1, 2 or 5 x 10^n,
+    at most half a degree for rotation, so short slides get fine steps and long ones are not tedious. */
+export function sliderStep(joint) {
+  const [lo, hi] = jointRange(joint)
+  const prismatic = joint.type === 'prismatic'
+  const span = Math.abs(hi - lo) * (prismatic ? 1000 : DEG)
+  if (!(span > 0)) return prismatic ? 0.1 : 0.5
+  const raw = span / 400
+  const step = NICE.find((n) => n >= raw) || NICE[NICE.length - 1]
+  return prismatic ? step : Math.min(0.5, Math.max(0.01, step))
+}
+
+const decimals = (step) => Math.max(0, -Math.floor(Math.log10(step) + 1e-9))
+
 /** Display units for a joint: degrees for rotation, millimetres for slides. */
 export function displayUnits(joint) {
+  const step = sliderStep(joint)
+  const shown = joint.type === 'prismatic' ? Math.min(2, decimals(step)) : Math.min(1, decimals(step * 2))
   return joint.type === 'prismatic'
-    ? { toUi: (v) => v * 1000, fromUi: (u) => u / 1000, suffix: ' mm', word: 'millimetres', step: 0.5, digits: 1 }
-    : { toUi: (v) => v * DEG, fromUi: (u) => u / DEG, suffix: '°', word: 'degrees', step: 0.5, digits: 0 }
+    ? { toUi: (v) => v * 1000, fromUi: (u) => u / 1000, suffix: ' mm', word: 'millimetres', step, digits: Math.max(1, shown) }
+    : { toUi: (v) => v * DEG, fromUi: (u) => u / DEG, suffix: '°', word: 'degrees', step, digits: shown }
 }
 
 const make = (tag, cls, text) => {
@@ -74,8 +92,8 @@ export function buildPanel(panel, robot, { poses, mode, ik, onJoint, onPose, onR
       input.type = 'range'
       input.id = id
       // keep zero on the step grid (a range steps from its min); the engine clamps the small overhang to the real limit
-      input.min = String(Math.floor(u.toUi(lo) / u.step + 1e-9) * u.step)
-      input.max = String(Math.ceil(u.toUi(hi) / u.step - 1e-9) * u.step)
+      input.min = String(+(Math.floor(u.toUi(lo) / u.step + 1e-9) * u.step).toFixed(6))
+      input.max = String(+(Math.ceil(u.toUi(hi) / u.step - 1e-9) * u.step).toFixed(6))
       input.step = String(u.step)
       if (j.mimic) {
         input.disabled = true
@@ -83,6 +101,14 @@ export function buildPanel(panel, robot, { poses, mode, ik, onJoint, onPose, onR
         input.title = `follows ${j.mimic.joint}`
       }
       input.addEventListener('input', () => onJoint(j.name, u.fromUi(Number(input.value))))
+      // Shift + arrow: ten steps at a time
+      input.addEventListener('keydown', (e) => {
+        if (!e.shiftKey || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return
+        e.preventDefault()
+        const dir = e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? -1 : 1
+        input.value = String(Number(input.value) + dir * 10 * u.step)
+        input.dispatchEvent(new Event('input', { bubbles: true }))
+      })
       const limits = make('div', 'limits')
       limits.setAttribute('aria-hidden', 'true')
       limits.append(make('span', '', fmt(u.toUi(lo), u.digits) + u.suffix), make('span', '', j.type === 'continuous' ? 'continuous' : ''), make('span', '', fmt(u.toUi(hi), u.digits) + u.suffix))

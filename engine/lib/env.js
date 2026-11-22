@@ -3,21 +3,40 @@
 import { createRequire } from 'node:module'
 import { execFileSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, resolve, dirname, isAbsolute } from 'node:path'
+import { tmpdir } from 'node:os'
+import { fileURLToPath } from 'node:url'
 
+const SKILL = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const require = createRequire(import.meta.url)
-const run = (cmd, args) => execFileSync(cmd, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()
+
+/** Environment for helper programs: no NODE_PATH, so nothing is picked up from wherever the user happens to be. */
+export function probeEnv(env = process.env) {
+  const { NODE_PATH, PYTHONPATH, PYTHONHOME, PYTHONSTARTUP, ...rest } = env
+  return rest
+}
+// probes run from the temp folder, never the current folder, so files planted there cannot be loaded
+const run = (cmd, args) => execFileSync(cmd, args, { encoding: 'utf8', cwd: tmpdir(), env: probeEnv(), stdio: ['ignore', 'pipe', 'ignore'] }).trim()
 const onPath = (name) => { try { return run('which', [name]).split('\n')[0] || null } catch { return null } }
 
-/** Playwright's chromium launcher: $PLAYWRIGHT_CORE, a local copy, or a global one. */
-export function findPlaywright() {
-  let root = ''
-  try { root = run('npm', ['root', '-g']) } catch {}
-  const cands = [process.env.PLAYWRIGHT_CORE, 'playwright-core', 'playwright', join(process.cwd(), 'node_modules', 'playwright-core'),
+/** Folders that may hold playwright-core, in order: $PLAYWRIGHT_CORE, this skill's own node_modules, the global npm folder.
+    The current folder is never searched. */
+export function playwrightCandidates(env = process.env, globalRoot = null) {
+  let root = globalRoot
+  if (root === null) { try { root = run('npm', ['root', '-g']) } catch { root = '' } }
+  return [env.PLAYWRIGHT_CORE && isAbsolute(env.PLAYWRIGHT_CORE) ? env.PLAYWRIGHT_CORE : null,
+    join(SKILL, 'node_modules', 'playwright-core'), join(SKILL, 'node_modules', 'playwright'),
     root && join(root, 'playwright-core'), root && join(root, 'playwright'), root && join(root, '@playwright/cli/node_modules/playwright-core'),
     root && join(root, '@playwright/test/node_modules/playwright-core')].filter(Boolean)
-  for (const c of cands) { try { return { chromium: require(c).chromium, from: c } } catch {} }
-  throw new Error('Playwright not found. Run `npm i -g playwright-core`, or set PLAYWRIGHT_CORE=/path/to/playwright-core')
+}
+
+/** Playwright's chromium launcher. */
+export function findPlaywright() {
+  for (const c of playwrightCandidates()) {
+    if (!existsSync(c)) continue
+    try { return { chromium: require(c).chromium, from: c } } catch {}
+  }
+  throw new Error('Playwright not found. Run `npm i -g playwright-core`, or set PLAYWRIGHT_CORE to the absolute path of playwright-core')
 }
 
 /** WebGL must work without a graphics card: these let Chrome use its software renderer. */
@@ -36,15 +55,15 @@ export async function launchBrowser() {
   throw new Error(`No browser could be started:\n  - ${errors.join('\n  - ')}\nInstall Google Chrome or Chromium, or run \`npx playwright-core install chromium\`, or set ROBOT_VIEWER_CHROME.`)
 }
 
-/** ffmpeg: $FF, ffmpeg on PATH, or the binary inside the imageio-ffmpeg Python package. */
+/** ffmpeg: $FF, ffmpeg on the PATH, or the binary inside the imageio-ffmpeg package of $ROBOT_VIEWER_PYTHON or python3.
+    Python runs isolated (-I): the current folder and PYTHON* variables are ignored. */
 export function findFF() {
   if (process.env.FF) return process.env.FF
   const sys = onPath('ffmpeg')
   if (sys) return sys
-  const pythons = [process.env.ROBOT_VIEWER_PYTHON, join(process.env.KOKORO_HOME || join(process.env.HOME || '', 'kokoro'), '.venv', 'bin', 'python'), onPath('python3')].filter(Boolean)
+  const pythons = [process.env.ROBOT_VIEWER_PYTHON, onPath('python3')].filter(Boolean)
   for (const py of pythons) {
-    if (!existsSync(py)) continue
-    try { return run(py, ['-c', 'import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())']) } catch {}
+    try { return run(py, ['-I', '-c', 'import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())']) } catch {}
   }
-  throw new Error('ffmpeg not found. Install ffmpeg, or `pip install imageio-ffmpeg`, or set FF=/path/to/ffmpeg')
+  throw new Error('ffmpeg not found. Install ffmpeg, or `pip install imageio-ffmpeg`, or set FF=/path/to/ffmpeg (or ROBOT_VIEWER_PYTHON to a Python that has imageio-ffmpeg)')
 }

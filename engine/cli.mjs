@@ -13,6 +13,7 @@ const HELP = `robot-viewer: turn a URDF robot into one embeddable, self-hosted <
   robot-viewer inspect <robot.urdf>          links, joints with limits, meshes and problems   [--package <dir>] [--json]
   robot-viewer build <robot.urdf> --out <dist>
         [--poses poses.json] [--name file-name] [--title "Shown name"] [--alt "text for screen readers"]
+        [--license Apache-2.0] [--source "where the model comes from"]
         [--package <dir>] [--simplify 0.5] [--compress meshopt|none] [--clamp] [--no-ik]
         [--ar-glb model.glb] [--ar-usdz model.usdz] [--no-poster] [--poster-pose name] [--orbit "35 18"]
         [--base /robots/] [--verify] [--strict]
@@ -44,8 +45,9 @@ function parseArgs(argv) {
   return { pos, opt }
 }
 
-const say = (s) => process.stdout.write(s + '\n')
-const fail = (s) => { process.stderr.write(`robot-viewer: ${s}\n`); process.exit(1) }
+import { terminalSafe } from './core/text.js'
+const say = (s) => process.stdout.write(terminalSafe(s) + '\n')
+const fail = (s) => { process.stderr.write(`robot-viewer: ${terminalSafe(s)}\n`); process.exit(1) }
 const need = (v, what) => { if (!v || v === true) fail(`missing ${what} (see robot-viewer help)`); return v }
 const num = (v, what, lo, hi) => {
   const n = Number(v)
@@ -82,14 +84,14 @@ async function inspect(file, opt) {
 async function poster(out, name, { pose = null, orbit = null, log = say } = {}) {
   const { readManifest } = await import('./lib/build.js')
   const { renderStills } = await import('./lib/stills.js')
-  const { writeFileSync } = await import('node:fs')
+  const { writeSafe } = await import('./lib/files.js')
   const manifest = readManifest(out)
   const r = manifest.robots.find((x) => x.name === name)
   if (!r) fail(`no robot "${name}" in ${out}/robots.json (have: ${manifest.robots.map((x) => x.name).join(', ') || 'none'})`)
   if (pose && !r.poses.includes(pose)) fail(`no pose "${pose}" (have: ${r.poses.join(', ') || 'none'})`)
   await renderStills(out, [{ glb: r.glb, out: join(out, `${name}.poster`), pose: pose || r.defaultPose, orbit: orbit || r.orbit || '35 18', width: 1200, height: 900 }], { log })
   r.poster = `${name}.poster.webp`
-  writeFileSync(join(out, 'robots.json'), JSON.stringify(manifest, null, 2) + '\n')
+  writeSafe(out, 'robots.json', JSON.stringify(manifest, null, 2) + '\n')
 }
 
 async function staticCheck(out) {
@@ -154,6 +156,7 @@ async function main() {
         packageDir: typeof opt.package === 'string' ? opt.package : undefined,
         simplify: opt.simplify !== undefined ? num(opt.simplify, '--simplify', 0.01, 1) : null,
         compress: typeof opt.compress === 'string' ? opt.compress : 'meshopt', clamp: !!opt.clamp, ik: !opt['no-ik'],
+        license: typeof opt.license === 'string' ? opt.license : undefined, source: typeof opt.source === 'string' ? opt.source : undefined,
         orbit: typeof opt.orbit === 'string' ? opt.orbit.trim().split(/\s+/).join(' ') : undefined,
         arGlb: typeof opt['ar-glb'] === 'string' ? opt['ar-glb'] : undefined, arUsdz: typeof opt['ar-usdz'] === 'string' ? opt['ar-usdz'] : undefined,
         log: say,

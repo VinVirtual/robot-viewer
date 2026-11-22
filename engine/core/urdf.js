@@ -9,6 +9,9 @@ export const MOVING_TYPES = new Set(['revolute', 'continuous', 'prismatic'])
 const KNOWN_TYPES = new Set([...MOVING_TYPES, 'fixed', 'floating', 'planar'])
 export const MESH_FORMATS = ['stl', 'obj', 'dae']
 export const MAX_URDF_BYTES = 8 * 1024 * 1024
+export const MAX_PARTS = 2000
+export const MAX_NAME = 200
+const listNames = (names, max = 8) => names.length > max ? `${names.slice(0, max).join(', ')} and ${names.length - max} more` : names.join(', ')
 
 const elements = (node, tag) => {
   const out = []
@@ -91,7 +94,7 @@ export function parseUrdf(text) {
 
   const warnings = []
   const read = reader(warnings)
-  const name = attr(robot, 'name') || 'robot'
+  const name = (attr(robot, 'name') || 'robot').slice(0, MAX_NAME)
 
   const materials = {}
   for (const m of elements(robot, 'material')) {
@@ -99,11 +102,13 @@ export function parseUrdf(text) {
     if (n) materials[n] = readColor(m, read, `material "${n}"`)
   }
 
+  if (elements(robot, 'link').length > MAX_PARTS || elements(robot, 'joint').length > MAX_PARTS) throw new UrdfError(`more than ${MAX_PARTS} links or joints; refusing to read it`)
   const links = []
   const linkNames = new Set()
   for (const l of elements(robot, 'link')) {
     const ln = attr(l, 'name')
     if (!ln) throw new UrdfError('a <link> has no name')
+    if (ln.length > MAX_NAME) throw new UrdfError(`a link name is longer than ${MAX_NAME} characters`)
     if (linkNames.has(ln)) throw new UrdfError(`link "${ln}" is defined twice`)
     linkNames.add(ln)
     const visuals = []
@@ -130,6 +135,7 @@ export function parseUrdf(text) {
   for (const j of elements(robot, 'joint')) {
     const jn = attr(j, 'name')
     if (!jn) throw new UrdfError('a <joint> has no name')
+    if (jn.length > MAX_NAME) throw new UrdfError(`a joint name is longer than ${MAX_NAME} characters`)
     if (jointNames.has(jn)) throw new UrdfError(`joint "${jn}" is defined twice`)
     jointNames.add(jn)
     const where = `joint "${jn}"`
@@ -176,7 +182,7 @@ export function parseUrdf(text) {
 
   const roots = links.filter((l) => !parentOf.has(l.name))
   if (roots.length === 0) throw new UrdfError('every link has a parent joint, so the joints form a loop; a URDF must be a tree')
-  if (roots.length > 1) throw new UrdfError(`the URDF has ${roots.length} separate parts (root links: ${roots.map((l) => l.name).join(', ')}); connect them with joints`)
+  if (roots.length > 1) throw new UrdfError(`the URDF has ${roots.length} separate parts (root links: ${listNames(roots.map((l) => l.name))}); connect them with joints`)
   const root = roots[0].name
 
   // every link must be reachable from the root (no cycles hanging off the tree)
@@ -185,7 +191,7 @@ export function parseUrdf(text) {
   const seen = new Set([root]), stack = [root]
   while (stack.length) for (const c of children.get(stack.pop()) || []) if (!seen.has(c)) { seen.add(c); stack.push(c) }
   const unreachable = links.filter((l) => !seen.has(l.name)).map((l) => l.name)
-  if (unreachable.length) throw new UrdfError(`links ${unreachable.join(', ')} form a loop and cannot be reached from the root link "${root}"`)
+  if (unreachable.length) throw new UrdfError(`links ${listNames(unreachable)} form a loop and cannot be reached from the root link "${root}"`)
 
   // mimic targets must exist, move, and not form chains back to themselves
   const byName = new Map(joints.map((j) => [j.name, j]))
