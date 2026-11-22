@@ -71,7 +71,7 @@ export function readManifest(out) {
 /**
  * @param {string} urdfPath
  * @param {{ out: string, name?: string, poses?: string, packageDir?: string, compress?: string, simplify?: number|null,
- *   clamp?: boolean, title?: string, orbit?: string, license?: string, source?: string, alt?: string, arGlb?: string, arUsdz?: string, ik?: boolean, base?: string, log?: (s: string) => void }} o
+ *   clamp?: boolean, triangles?: number, title?: string, orbit?: string, license?: string, source?: string, alt?: string, arGlb?: string, arUsdz?: string, ik?: boolean, base?: string, log?: (s: string) => void }} o
  */
 export async function buildRobot(urdfPath, o) {
   const log = o.log || (() => {})
@@ -101,7 +101,10 @@ export async function buildRobot(urdfPath, o) {
   root.setExtras({ rv: 'robot', robotViewer: description })
   // the model's own licence travels inside the file, in the standard glTF place as well
   if (o.license || o.source) doc.getRoot().getAsset().copyright = [o.source && `Source: ${o.source}`, o.license && `Licence: ${o.license}`].filter(Boolean).join('. ')
-  await optimise(doc, { compress: o.compress || 'meshopt', simplifyRatio: o.simplify ?? null })
+  if (o.triangles !== undefined && o.triangles !== null && !(Number.isInteger(o.triangles) && o.triangles >= 100)) throw new Error('--triangles must be a whole number of at least 100')
+  const ratio = o.triangles ? Math.min(1, o.triangles / Math.max(1, stats.triangles)) : o.simplify ?? null
+  const simplified = await optimise(doc, { compress: o.compress || 'meshopt', simplifyRatio: ratio !== null && ratio < 1 ? ratio : null })
+  if (simplified) log(`simplified: ${simplified.before} -> ${simplified.after} triangles (target ${Math.round(simplified.before * ratio)}, surface error bound ${simplified.error} of each mesh's size)`)
   const triangles = countTriangles(doc)
   const glb = await (await nodeIO()).writeBinary(doc)
   writeSafe(out, glbName, glb)

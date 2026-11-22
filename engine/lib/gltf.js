@@ -4,8 +4,9 @@
 // The whole joints description is stored in the root node's extras as well, so the GLB alone is enough to drive the viewer.
 import { Document, NodeIO, Logger } from '@gltf-transform/core'
 import { EXTMeshoptCompression, KHRMeshQuantization } from '@gltf-transform/extensions'
-import { weld, dedup, prune, meshopt, simplify } from '@gltf-transform/functions'
-import { MeshoptEncoder, MeshoptSimplifier, MeshoptDecoder } from 'meshoptimizer'
+import { weld, dedup, prune, meshopt } from '@gltf-transform/functions'
+import { simplifyDocument } from './simplify.js'
+import { MeshoptEncoder, MeshoptDecoder } from 'meshoptimizer'
 import { dirname } from 'node:path'
 import { fromRpy, toQuaternion } from '../core/mat.js'
 import { resolveMeshPath } from './paths.js'
@@ -143,17 +144,17 @@ export function buildDocument(robot, { urdfPath, packageDir } = {}) {
 }
 
 /** Weld, optionally simplify, compress. `compress`: "meshopt" (default) or "none". */
-export async function optimise(doc, { compress = 'meshopt', simplifyRatio = null, simplifyError = 0.001 } = {}) {
+/** Weld, optionally simplify to a share of the triangles (see simplify.js for why CAD meshes need more than
+    a plain simplify), compress. `compress`: "meshopt" (default) or "none". Returns the simplify result or null. */
+export async function optimise(doc, { compress = 'meshopt', simplifyRatio = null, maxError = 0.015 } = {}) {
   await MeshoptEncoder.ready
+  let simplified = null
+  if (simplifyRatio !== null && simplifyRatio < 1) simplified = await simplifyDocument(doc, { ratio: simplifyRatio, maxError })
   await doc.transform(dedup(), weld())
-  if (simplifyRatio !== null && simplifyRatio < 1) {
-    await MeshoptSimplifier.ready
-    await doc.transform(simplify({ simplifier: MeshoptSimplifier, ratio: simplifyRatio, error: simplifyError }))
-  }
   await doc.transform(prune({ keepLeaves: true, keepExtras: true }))
   if (compress === 'meshopt') await doc.transform(meshopt({ encoder: MeshoptEncoder, level: 'medium' }))
   else if (compress !== 'none') throw new Error(`unknown compression "${compress}"; use meshopt or none`)
-  return doc
+  return simplified
 }
 
 export async function nodeIO() {

@@ -14,7 +14,7 @@ const HELP = `robot-viewer: turn a URDF robot into one embeddable, self-hosted <
   robot-viewer build <robot.urdf> --out <dist>
         [--poses poses.json] [--name file-name] [--title "Shown name"] [--alt "text for screen readers"]
         [--license Apache-2.0] [--source "where the model comes from"]
-        [--package <dir>] [--simplify 0.5] [--compress meshopt|none] [--clamp] [--no-ik]
+        [--package <dir>] [--simplify 0.5 | --triangles 40000] [--compress meshopt|none] [--clamp] [--no-ik]
         [--ar-glb model.glb] [--ar-usdz model.usdz] [--no-poster] [--poster-pose name] [--orbit "35 18"]
         [--base /robots/] [--verify] [--strict]
                                              GLB + joints JSON + component + demo page + snippet + size report
@@ -155,6 +155,7 @@ async function main() {
         title: typeof opt.title === 'string' ? opt.title : undefined, alt: typeof opt.alt === 'string' ? opt.alt : undefined,
         packageDir: typeof opt.package === 'string' ? opt.package : undefined,
         simplify: opt.simplify !== undefined ? num(opt.simplify, '--simplify', 0.01, 1) : null,
+        triangles: opt.triangles !== undefined ? Math.round(num(opt.triangles, '--triangles', 100, 1e8)) : undefined,
         compress: typeof opt.compress === 'string' ? opt.compress : 'meshopt', clamp: !!opt.clamp, ik: !opt['no-ik'],
         license: typeof opt.license === 'string' ? opt.license : undefined, source: typeof opt.source === 'string' ? opt.source : undefined,
         orbit: typeof opt.orbit === 'string' ? opt.orbit.trim().split(/\s+/).join(' ') : undefined,

@@ -50,7 +50,7 @@ The viewer shows "View in your room" only when it is given AR files and the visi
 - Say what the viewer is: an interactive model. Nothing checks collisions, balance, torque or speed. Joint limits from the URDF are the only rule enforced. The demo page says so; keep that line or an equivalent where the user publishes it.
 - Never invent specifications in titles, alt text or pages. Numbers shown (joints, links, triangles, file size) come from the build.
 - Textures are not carried into the GLB (colours are). This keeps the viewer free of `blob:` URLs, which a strict policy blocks. If the user's robot relies on image textures, say so.
-- Keep the GLB under about 4 MB. If it is larger: `--simplify 0.5` (keeps about half the vertices where the shape allows) and look at the poster again.
+- Keep the GLB under about 4 MB. If it is larger, give a triangle budget: `--triangles 60000` for the whole robot (or `--simplify 0.3`, the share to keep). It works on CAD and STL meshes with per-face normals: it merges by position, simplifies within a growing error bound, and rebuilds crease-aware normals. The build prints before, after and the error used. Look at the poster again afterwards.
 
 ## Troubleshooting
 
